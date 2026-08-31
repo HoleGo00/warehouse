@@ -27,7 +27,7 @@ const environment = parseApiEnvironment({
   NODE_ENV: 'test',
   DATABASE_URL: 'postgresql://warehouse:warehouse@localhost:5432/warehouse',
   WEB_PUBLIC_URL: 'http://localhost:5173',
-  FEISHU_APP_ID: 'cli_example',
+  FEISHU_APP_ID: 'cli_0123456789abcdef',
   FEISHU_APP_SECRET: 'not-a-real-secret',
   FEISHU_ALLOWED_TENANT_KEY: 'tenant',
   FEISHU_REDIRECT_URI: 'http://localhost:3000/auth/feishu/oauth/callback',

@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { roleCodeSchema, warehouseCodeSchema } from './enums.js';
 
+export const feishuAppIdSchema = z
+  .string()
+  .regex(/^cli_[A-Za-z0-9]{8,}$/, 'A valid Feishu App ID is required.');
+
+export const isFeishuAppId = (value: unknown): value is string =>
+  feishuAppIdSchema.safeParse(value).success;
+
 export const authErrorCodes = [
   'AUTH_REQUIRED',
   'AUTH_STATE_INVALID',

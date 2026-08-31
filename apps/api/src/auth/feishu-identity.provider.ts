@@ -37,7 +37,6 @@ const userInfoSchema = z.object({
   code: z.literal(0),
   data: z.object({
     tenant_key: z.string().min(1),
-    user_id: z.string().min(1),
     open_id: z.string().min(1),
     union_id: z.string().min(1).optional(),
     name: z.string().min(1),
@@ -46,20 +45,19 @@ const userInfoSchema = z.object({
 });
 
 const contactUserSchema = z.object({
-  code: z.number(),
-  data: z
-    .object({
-      user: z.object({
-        department_ids: z.array(z.string()).optional(),
-        status: z.object({
-          is_frozen: z.boolean(),
-          is_resigned: z.boolean(),
-          is_activated: z.boolean(),
-          is_unjoin: z.boolean(),
-        }),
+  code: z.literal(0),
+  data: z.object({
+    user: z.object({
+      user_id: z.string().min(1),
+      department_ids: z.array(z.string()).optional(),
+      status: z.object({
+        is_frozen: z.boolean(),
+        is_resigned: z.boolean(),
+        is_activated: z.boolean(),
+        is_unjoin: z.boolean(),
       }),
-    })
-    .optional(),
+    }),
+  }),
 });
 
 const readAccessToken = (payload: z.infer<typeof oauthTokenSchema>): string =>
@@ -95,21 +93,18 @@ export class HttpFeishuIdentityProvider implements FeishuIdentityProvider {
       const userInfo = userInfoSchema.parse(userInfoPayload).data;
 
       const contactResponse = await this.fetchFunction(
-        `https://open.feishu.cn/open-apis/contact/v3/users/${encodeURIComponent(userInfo.user_id)}?user_id_type=user_id&department_id_type=open_department_id`,
+        `https://open.feishu.cn/open-apis/contact/v3/users/${encodeURIComponent(userInfo.open_id)}?user_id_type=open_id&department_id_type=open_department_id`,
         { headers: { authorization: `Bearer ${accessToken}` } },
       );
       if (!contactResponse.ok) throw new Error('Feishu contact endpoint rejected the request.');
       const contactPayload: unknown = await contactResponse.json();
-      const contact = contactUserSchema.parse(contactPayload);
-      if (contact.code !== 0 || contact.data === undefined) {
-        throw new Error('Feishu contact endpoint returned an invalid response.');
-      }
-      const status = contact.data.user.status;
+      const contactUser = contactUserSchema.parse(contactPayload).data.user;
+      const status = contactUser.status;
       const isActive =
         status.is_activated && !status.is_frozen && !status.is_resigned && !status.is_unjoin;
       return {
-        ...this.toIdentity(userInfo, isActive),
-        departments: contact.data.user.department_ids,
+        ...this.toIdentity(userInfo, contactUser.user_id, isActive),
+        departments: contactUser.department_ids,
       };
     } catch (error: unknown) {
       if (error instanceof AuthDomainError) throw error;
@@ -181,11 +176,12 @@ export class HttpFeishuIdentityProvider implements FeishuIdentityProvider {
 
   private toIdentity(
     userInfo: z.infer<typeof userInfoSchema>['data'],
+    userId: string,
     isActive: boolean,
   ): FeishuIdentity {
     return {
       tenantKey: userInfo.tenant_key,
-      userId: userInfo.user_id,
+      userId,
       openId: userInfo.open_id,
       unionId: userInfo.union_id,
       name: userInfo.name,

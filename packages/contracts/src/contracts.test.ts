@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateAvailability,
+  feishuAppIdSchema,
+  isFeishuAppId,
   normalizeAuthReturnPath,
   productCatalog,
   productStatusSchema,
@@ -10,6 +12,12 @@ import {
 } from './index.js';
 
 describe('shared contracts', () => {
+  it('accepts real Feishu App ID shapes and rejects preview placeholders', () => {
+    expect(feishuAppIdSchema.parse('cli_0123456789abcdef')).toBe('cli_0123456789abcdef');
+    expect(isFeishuAppId('cli_local_visual_check')).toBe(false);
+    expect(isFeishuAppId('replace_with_feishu_app_id')).toBe(false);
+  });
+
   it('defines the exact supported ring sizes', () => {
     expect(ringSizes).toEqual(['6#', '7#', '8#', '9#', '10#', '11#', '12#', '13#']);
     expect(ringSizeSchema.safeParse('14#').success).toBe(false);

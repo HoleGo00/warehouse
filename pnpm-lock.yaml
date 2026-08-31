@@ -143,6 +143,9 @@ importers:
 
   packages/config:
     dependencies:
+      '@glorychips/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       zod:
         specifier: 4.5.4
         version: 4.5.4

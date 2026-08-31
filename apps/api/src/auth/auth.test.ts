@@ -82,7 +82,7 @@ const fakeIdentity: FeishuIdentity = {
 const environment = parseApiEnvironment({
   DATABASE_URL: 'postgresql://warehouse:warehouse@localhost:5432/warehouse',
   WEB_PUBLIC_URL: 'http://localhost:5173',
-  FEISHU_APP_ID: 'cli_example',
+  FEISHU_APP_ID: 'cli_0123456789abcdef',
   FEISHU_APP_SECRET: 'not-a-real-secret',
   FEISHU_ALLOWED_TENANT_KEY: 'tenant',
   FEISHU_REDIRECT_URI: 'http://localhost:3000/auth/feishu/oauth/callback',
@@ -171,6 +171,7 @@ describe('auth application boundary', () => {
 
 describe('HttpFeishuIdentityProvider', () => {
   it('decodes Feishu responses through the injectable HTTP boundary', async () => {
+    const requests: string[] = [];
     const responses = [
       new Response(JSON.stringify({ access_token: 'user-access-token' }), { status: 200 }),
       new Response(
@@ -178,7 +179,6 @@ describe('HttpFeishuIdentityProvider', () => {
           code: 0,
           data: {
             tenant_key: 'tenant',
-            user_id: 'employee',
             open_id: 'open-employee',
             union_id: 'union-employee',
             name: 'Employee',
@@ -192,6 +192,7 @@ describe('HttpFeishuIdentityProvider', () => {
           code: 0,
           data: {
             user: {
+              user_id: 'employee',
               department_ids: ['department-1'],
               status: {
                 is_activated: true,
@@ -207,11 +208,12 @@ describe('HttpFeishuIdentityProvider', () => {
     ];
     const provider = new HttpFeishuIdentityProvider(
       {
-        appId: 'cli_example',
+        appId: 'cli_0123456789abcdef',
         appSecret: 'not-a-real-secret',
         redirectUri: environment.FEISHU_REDIRECT_URI,
       },
-      async () => {
+      async (input) => {
+        requests.push(input.toString());
         const response = responses.shift();
         if (response === undefined) throw new Error('Unexpected request.');
         return response;
@@ -231,12 +233,15 @@ describe('HttpFeishuIdentityProvider', () => {
       isInAppScope: true,
       isActive: true,
     });
+    expect(requests[2]).toBe(
+      'https://open.feishu.cn/open-apis/contact/v3/users/open-employee?user_id_type=open_id&department_id_type=open_department_id',
+    );
   });
 
   it('maps malformed upstream data to a stable error without returning payloads', async () => {
     const provider = new HttpFeishuIdentityProvider(
       {
-        appId: 'cli_example',
+        appId: 'cli_0123456789abcdef',
         appSecret: 'not-a-real-secret',
         redirectUri: environment.FEISHU_REDIRECT_URI,
       },
@@ -253,7 +258,7 @@ describe('HttpFeishuIdentityProvider', () => {
   it('maps Feishu app availability rejection without exposing the upstream response', async () => {
     const provider = new HttpFeishuIdentityProvider(
       {
-        appId: 'cli_example',
+        appId: 'cli_0123456789abcdef',
         appSecret: 'not-a-real-secret',
         redirectUri: environment.FEISHU_REDIRECT_URI,
       },
@@ -284,7 +289,6 @@ describe('HttpFeishuIdentityProvider', () => {
           code: 0,
           data: {
             tenant_key: 'tenant',
-            user_id: 'employee',
             open_id: 'open-employee',
             name: 'Employee',
           },
@@ -295,7 +299,7 @@ describe('HttpFeishuIdentityProvider', () => {
     ];
     const provider = new HttpFeishuIdentityProvider(
       {
-        appId: 'cli_example',
+        appId: 'cli_0123456789abcdef',
         appSecret: 'not-a-real-secret',
         redirectUri: environment.FEISHU_REDIRECT_URI,
       },
@@ -313,6 +317,47 @@ describe('HttpFeishuIdentityProvider', () => {
     });
   });
 
+  it('fails closed when contact permissions omit employee identity and status', async () => {
+    const responses = [
+      new Response(JSON.stringify({ access_token: 'user-access-token' }), { status: 200 }),
+      new Response(
+        JSON.stringify({
+          code: 0,
+          data: {
+            tenant_key: 'tenant',
+            open_id: 'open-employee',
+            union_id: 'union-employee',
+            name: 'Employee',
+          },
+        }),
+        { status: 200 },
+      ),
+      new Response(
+        JSON.stringify({
+          code: 0,
+          data: { user: { open_id: 'open-employee', union_id: 'union-employee' } },
+        }),
+        { status: 200 },
+      ),
+    ];
+    const provider = new HttpFeishuIdentityProvider(
+      {
+        appId: 'cli_0123456789abcdef',
+        appSecret: 'not-a-real-secret',
+        redirectUri: environment.FEISHU_REDIRECT_URI,
+      },
+      async () => {
+        const response = responses.shift();
+        if (response === undefined) throw new Error('Unexpected request.');
+        return response;
+      },
+    );
+
+    await expect(
+      provider.resolveAuthorizationCode('OAUTH_STATE', 'one-time-code'),
+    ).rejects.toMatchObject({ code: 'AUTH_UPSTREAM_UNAVAILABLE' });
+  });
+
   it('exchanges Feishu client requestAccess codes through the v1 token flow', async () => {
     const requests: Array<{ readonly url: string; readonly authorization?: string }> = [];
     const responses = [
@@ -327,7 +372,6 @@ describe('HttpFeishuIdentityProvider', () => {
           code: 0,
           data: {
             tenant_key: 'tenant',
-            user_id: 'employee',
             open_id: 'open-employee',
             name: 'Employee',
           },
@@ -339,6 +383,7 @@ describe('HttpFeishuIdentityProvider', () => {
           code: 0,
           data: {
             user: {
+              user_id: 'employee',
               status: {
                 is_activated: true,
                 is_frozen: false,
@@ -353,7 +398,7 @@ describe('HttpFeishuIdentityProvider', () => {
     ];
     const provider = new HttpFeishuIdentityProvider(
       {
-        appId: 'cli_example',
+        appId: 'cli_0123456789abcdef',
         appSecret: 'not-a-real-secret',
         redirectUri: environment.FEISHU_REDIRECT_URI,
       },

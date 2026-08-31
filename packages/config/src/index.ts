@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { feishuAppIdSchema } from '@glorychips/contracts';
 
 const nodeEnvironmentSchema = z.enum(['development', 'test', 'production']).default('development');
 
@@ -11,7 +12,7 @@ export const apiEnvironmentSchema = databaseEnvironmentSchema
     NODE_ENV: nodeEnvironmentSchema,
     API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     WEB_PUBLIC_URL: z.url(),
-    FEISHU_APP_ID: z.string().min(1),
+    FEISHU_APP_ID: feishuAppIdSchema,
     FEISHU_APP_SECRET: z.string().min(1),
     FEISHU_ALLOWED_TENANT_KEY: z.string().min(1),
     FEISHU_REDIRECT_URI: z.url(),

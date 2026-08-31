@@ -5,7 +5,7 @@ const databaseUrl = 'postgresql://warehouse:warehouse_local@localhost:54329/ware
 const apiEnvironment = {
   DATABASE_URL: databaseUrl,
   WEB_PUBLIC_URL: 'http://localhost:5173',
-  FEISHU_APP_ID: 'cli_example',
+  FEISHU_APP_ID: 'cli_0123456789abcdef',
   FEISHU_APP_SECRET: 'not-a-real-secret',
   FEISHU_ALLOWED_TENANT_KEY: 'tenant_example',
   FEISHU_REDIRECT_URI: 'http://localhost:3000/auth/feishu/oauth/callback',
@@ -32,6 +32,9 @@ describe('environment parsing', () => {
     expect(
       parseApiEnvironment({ ...apiEnvironment, NODE_ENV: 'production' }).SESSION_COOKIE_SECURE,
     ).toBe(true);
+    expect(() =>
+      parseApiEnvironment({ ...apiEnvironment, FEISHU_APP_ID: 'cli_local_visual_check' }),
+    ).toThrow();
   });
 
   it('keeps the OAuth browser binding separate from the application session', () => {

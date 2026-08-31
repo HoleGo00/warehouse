@@ -50,6 +50,12 @@ FEISHU_REDIRECT_URI
 INITIAL_ADMIN_FEISHU_USER_ID
 ```
 
+`FEISHU_APP_ID` must match the real Open Platform `cli_...` identifier shape;
+placeholder values must fail during environment parsing. Local development loads the
+repository-root `.env` for the API and Vite app, while already-set process variables
+retain precedence. `INITIAL_ADMIN_FEISHU_USER_ID` is the stable `user_id` returned by
+the contact API, not the OAuth `open_id`.
+
 Optional keys and defaults:
 
 ```text
@@ -73,6 +79,14 @@ Browser OAuth exchanges codes through `authen/v2/oauth/token`. Feishu-client
 `authen/v1/access_token`. Both flows converge on `authen/v1/user_info`, the contact
 status lookup, local identity binding, bootstrap, and session creation.
 
+`authen/v1/user_info` is the source for `tenant_key`, `open_id`, `union_id`, name, and
+avatar, but it must not be expected to return `user_id`. Use its `open_id` to call
+`contact/v3/users/{open_id}?user_id_type=open_id`; the contact response owns the stable
+`user_id`, `department_ids`, and employment `status`. Missing contact fields indicate
+an app permission or upstream schema problem and must fail closed before local identity
+binding. The Open Platform app must be published with permissions that expose those
+fields and an availability scope containing the employee.
+
 The web app loads H5 JS SDK `1.5.26` only for a Feishu/Lark client user agent. Ordinary
 browsers must not insert the SDK script or emit bridge errors; they use OAuth.
 
@@ -93,6 +107,7 @@ Access invariants:
 | Missing/malformed/mismatched/replayed state or challenge | `AUTH_STATE_INVALID` |
 | Feishu identity conflicts with an existing binding | `AUTH_IDENTITY_CONFLICT` |
 | Feishu network/schema/contact failure | `AUTH_UPSTREAM_UNAVAILABLE` |
+| Contact response omits `user_id` or employment `status` | `AUTH_UPSTREAM_UNAVAILABLE` |
 | Tenant mismatch | `FEISHU_TENANT_FORBIDDEN` |
 | Feishu code `20010` / user outside app scope | `FEISHU_APP_SCOPE_FORBIDDEN` |
 | Feishu or local employee inactive | `USER_INACTIVE` |
@@ -117,7 +132,9 @@ snapshots must never appear in API errors or logs.
 
 - Unit: shared Zod contracts, internal return-path normalization, cookie attributes,
   constant-time state binding, OAuth/client token routing, Feishu error mapping, and SDK
-  loading only in client user agents.
+  loading only in client user agents. Provider fixtures must model `user_info` without
+  `user_id`, assert an `open_id` contact lookup, and cover missing protected contact
+  fields.
 - Nest HTTP: redirects, binding/session cookie headers, malformed/mismatched/replayed
   callback, client flow independence, global error filter, `401`, `403`, and URL/body
   warehouse guards.
@@ -151,3 +168,23 @@ const state = await auth.consumeLoginState('OAUTH_STATE', query.state);
 
 The callback validates the browser binding before any one-time state consumption or
 upstream identity exchange.
+
+#### Wrong
+
+```typescript
+const userInfo = userInfoSchema.parse(payload).data;
+return { userId: userInfo.user_id };
+```
+
+This relies on a field that the real OAuth user-info response does not provide.
+
+#### Correct
+
+```typescript
+const userInfo = userInfoSchema.parse(payload).data;
+const contact = await getContactUser(userInfo.open_id, 'open_id');
+return { userId: contact.user_id, openId: userInfo.open_id };
+```
+
+OAuth supplies the application-scoped lookup key; the permission-protected contact
+response supplies the stable employee ID and status.

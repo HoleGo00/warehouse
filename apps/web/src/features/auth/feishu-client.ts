@@ -1,3 +1,5 @@
+import { isFeishuAppId } from '@glorychips/contracts';
+
 interface FeishuClientApi {
   readonly requestAccess?: (options: FeishuRequestAccessOptions) => void;
 }
@@ -21,9 +23,7 @@ const defaultOptions = (): FeishuClientOptions => ({
 });
 
 export const canUseFeishuClientLogin = (options: FeishuClientOptions = defaultOptions()): boolean =>
-  options.client?.requestAccess !== undefined &&
-  typeof options.appId === 'string' &&
-  options.appId.length > 0;
+  options.client?.requestAccess !== undefined && isFeishuAppId(options.appId);
 
 export const selectFeishuLoginMethod = (
   options: FeishuClientOptions = defaultOptions(),
@@ -78,7 +78,7 @@ export const requestFeishuAccessCode = async (
 ): Promise<string> =>
   new Promise((resolve, reject) => {
     const requestAccess = options.client?.requestAccess;
-    if (requestAccess === undefined || options.appId === undefined || options.appId.length === 0) {
+    if (requestAccess === undefined || !isFeishuAppId(options.appId)) {
       reject(new Error('当前环境不支持飞书客户端免登'));
       return;
     }
