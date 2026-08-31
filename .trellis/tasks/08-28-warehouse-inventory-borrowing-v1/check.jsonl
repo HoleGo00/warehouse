@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查跨层数据流、权限和状态一致性"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-base-audit.md", "reason": "按真实底账基线复核迁移与表映射"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md", "reason": "复核幂等、重试、部分同步和对账行为"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-table-migration.md", "reason": "复核历史保留、迁移可重入和回滚边界"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/warehouse-and-qr-model.md", "reason": "复核仓库授权、混领和整单业务规则"}

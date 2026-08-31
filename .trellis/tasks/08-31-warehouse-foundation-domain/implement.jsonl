@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "指导单仓库、数据库、API、worker 与 web 的跨层一致性"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "约束共享 contracts、配置和数据库能力的复用边界"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "提供总 Epic 的完整业务与验收约束"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/design.md", "reason": "提供总体架构、数据模型和库存事务边界"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/task-map.md", "reason": "限定串行子任务范围并禁止提前写飞书"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/product-catalog.md", "reason": "提供产品、别名、历史停用状态和种子清单"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md", "reason": "为 outbox 数据模型和库存待同步口径提供约束"}

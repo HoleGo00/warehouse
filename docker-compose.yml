@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_PASSWORD: warehouse_local
+      POSTGRES_USER: warehouse
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U warehouse -d warehouse']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - '${POSTGRES_PORT:-54329}:5432'
+    volumes:
+      - warehouse_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  warehouse_postgres_data:

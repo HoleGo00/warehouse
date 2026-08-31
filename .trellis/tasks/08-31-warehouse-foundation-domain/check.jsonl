@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "复核工程、数据库和应用边界的一致性"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "复核共享包与领域逻辑没有重复实现"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "复核基础模型未偏离总业务规则"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/design.md", "reason": "复核库存事务、outbox 和数据模型契约"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/task-map.md", "reason": "复核未越过当前子任务范围或写入真实飞书"}
