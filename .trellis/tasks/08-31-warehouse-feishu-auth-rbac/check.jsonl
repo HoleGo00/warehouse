@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verify validation audit transactions tests and forbidden patterns"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Verify tokens secrets and Feishu payloads are not logged"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify frontend loading error and shared contract behavior"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify end-to-end auth and warehouse authorization flow"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/initial-admin-bootstrap.md", "reason": "Verify concurrency and permanent bootstrap constraints"}

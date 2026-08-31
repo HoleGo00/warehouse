@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "API module and service ownership boundaries"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Prisma migration transaction and advisory lock conventions"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Zod validation audit atomicity and required tests"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Shared auth contracts and frontend boundary validation"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Identity and RBAC data flow across database API and web"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-identity.md", "reason": "Feishu-only login identity and security boundary"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/initial-admin-bootstrap.md", "reason": "One-time initial administrator rules"}
