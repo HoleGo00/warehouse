@@ -81,6 +81,9 @@ const aggregateMovementLines = (
   const aggregated = new Map<string, MovementLineInput>();
   for (const rawLine of lines) {
     const line = movementLineSchema.parse(rawLine);
+    // Validate each submitted line before aggregation so contradictory signs
+    // cannot cancel into a seemingly valid net delta.
+    assertMovementDirection(line);
     const key = keyOf(line);
     const existing = aggregated.get(key);
     if (existing !== undefined && existing.type !== line.type) {

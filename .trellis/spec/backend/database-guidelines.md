@@ -61,3 +61,6 @@ columns. Stable business keys and idempotency keys have database unique constrai
 Do not update `inventory_balances` from controllers or ad-hoc scripts. A balance
 change must be paired with an append-only `inventory_movements` row and, when
 external synchronization is needed, an `outbox_jobs` row in the same transaction.
+When releasing a reservation, derive the lock keys from the initially active rows,
+lock balances in stable order, then re-read active rows before decrementing reserved
+quantities. This closes the stale-read window for concurrent release/consume calls.

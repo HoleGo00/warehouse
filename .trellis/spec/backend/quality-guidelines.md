@@ -35,9 +35,9 @@ that duplicate contracts already defined in `packages/contracts`.
 <!-- Patterns that must always be used -->
 
 Validate external input at the boundary with Zod. Sort multi-line inventory keys
-before locking, validate every line before mutation, and make all mutating commands
-idempotent. Write audit and outbox records inside the same transaction as business
-state.
+before locking, validate every submitted movement line (including its sign) before
+aggregation or mutation, and make all mutating commands idempotent. Write audit and
+outbox records inside the same transaction as business state.
 
 ---
 

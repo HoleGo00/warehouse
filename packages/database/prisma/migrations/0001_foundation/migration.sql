@@ -796,6 +796,26 @@ ALTER TABLE "inventory_balances"
   ADD CONSTRAINT "inventory_balances_nonnegative_reserved_chk"
   CHECK ("reserved_quantity" >= 0);
 
+ALTER TABLE "inventory_movements"
+  ADD CONSTRAINT "inventory_movements_nonzero_delta_chk"
+  CHECK ("quantity_delta" <> 0);
+
+ALTER TABLE "inventory_reservations"
+  ADD CONSTRAINT "inventory_reservations_positive_quantity_chk"
+  CHECK ("quantity" > 0);
+
+ALTER TABLE "request_items"
+  ADD CONSTRAINT "request_items_positive_quantity_chk"
+  CHECK ("quantity" > 0);
+
+ALTER TABLE "return_obligations"
+  ADD CONSTRAINT "return_obligations_positive_quantity_chk"
+  CHECK ("required_quantity" > 0);
+
+ALTER TABLE "returns"
+  ADD CONSTRAINT "returns_positive_quantity_chk"
+  CHECK ("quantity" > 0);
+
 CREATE OR REPLACE FUNCTION enforce_variant_product_specification()
 RETURNS trigger
 LANGUAGE plpgsql
