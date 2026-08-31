@@ -573,7 +573,7 @@ export class InventoryService {
       async (transaction) => {
         // Serialize callers sharing a client idempotency key before the unique upsert.
         // This avoids a P2002 race while preserving the same response for retries.
-        await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+        await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
         const record = await transaction.idempotencyKey.upsert({
           where: { key },
           create: { key, operation, requestHash },

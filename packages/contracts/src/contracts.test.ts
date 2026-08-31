@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateAvailability,
+  normalizeAuthReturnPath,
   productCatalog,
   productStatusSchema,
   ringSizeSchema,
   ringSizes,
+  updateAccessRequestSchema,
 } from './index.js';
 
 describe('shared contracts', () => {
@@ -29,5 +31,27 @@ describe('shared contracts', () => {
         reservedQuantity: 3,
       }),
     ).toEqual({ effectiveOnHandQuantity: 8, availableQuantity: 5 });
+  });
+
+  it('normalizes only known internal authentication return paths', () => {
+    expect(normalizeAuthReturnPath('/w/XIHU/apply?source=qr')).toBe('/w/XIHU/apply?source=qr');
+    expect(normalizeAuthReturnPath('/w/UNKNOWN/apply')).toBe('/');
+    expect(normalizeAuthReturnPath('//evil.example/path')).toBe('/');
+    expect(normalizeAuthReturnPath('https://evil.example/path')).toBe('/');
+  });
+
+  it('rejects invalid warehouse administrator access profiles', () => {
+    expect(
+      updateAccessRequestSchema.safeParse({
+        roles: ['CLAIMANT', 'WAREHOUSE_ADMIN'],
+        warehouses: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      updateAccessRequestSchema.safeParse({
+        roles: ['CLAIMANT', 'WAREHOUSE_ADMIN'],
+        warehouses: ['XIHU'],
+      }).success,
+    ).toBe(true);
   });
 });

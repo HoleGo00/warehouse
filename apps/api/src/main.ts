@@ -6,6 +6,7 @@ import { AppModule } from './app.module.js';
 const bootstrap = async (): Promise<void> => {
   const environment = parseApiEnvironment(process.env);
   const app = await NestFactory.create(AppModule);
+  app.enableCors({ origin: environment.WEB_PUBLIC_URL, credentials: true });
   app.enableShutdownHooks();
   await app.listen(environment.API_PORT, '0.0.0.0');
 };

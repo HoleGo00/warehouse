@@ -22,7 +22,7 @@
     "lint": "eslint . --max-warnings 0",
     "postinstall": "pnpm db:generate",
     "test": "pnpm db:generate && vitest run --config vitest.config.ts",
-    "test:integration": "pnpm db:migrate && cross-env DATABASE_URL=postgresql://warehouse:warehouse_local@localhost:54329/warehouse?schema=public vitest run --config vitest.integration.config.ts",
+    "test:integration": "pnpm db:migrate && pnpm db:seed && cross-env DATABASE_URL=postgresql://warehouse:warehouse_local@localhost:54329/warehouse?schema=public vitest run --config vitest.integration.config.ts",
     "typecheck": "pnpm db:generate && pnpm -r --if-present typecheck"
   },
   "devDependencies": {
