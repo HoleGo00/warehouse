@@ -43,8 +43,11 @@ untyped event payloads.
 
 <!-- How styles are applied (CSS modules, styled-components, Tailwind, etc.) -->
 
-Use scoped component styles or feature stylesheet modules. Keep the palette and
-spacing tokens local until the design system task introduces shared tokens.
+Use shadcn-vue as the shared primitive foundation and follow
+`design-guidelines.md` for its incremental Tailwind setup, source-owned components,
+copy, theme, radius, border, card, shadow, density, and visual-review rules. Existing
+scoped feature styles remain valid during migration and for domain-specific layouts
+that shadcn does not provide.
 
 ---
 
@@ -61,4 +64,11 @@ status feedback via semantic roles where appropriate.
 
 <!-- Component-related mistakes your team has made -->
 
-(To be filled by the team)
+- Hand-building a common button, select, dialog, or tooltip instead of extending
+  the shared shadcn-vue primitive.
+- Removing accessible or error text while trying to comply with the ban on visible
+  descriptive copy. Functional and assistive text remains required.
+- Adding a border or card wrapper at every component boundary instead of only at a
+  real visual or interaction boundary.
+- Adding a second full component suite because a single shadcn-vue primitive needs a
+  local variant.
