@@ -141,8 +141,11 @@ const knownReturnPathSchema = z.string().refine((value) => {
       (url.pathname === '/' ||
         url.pathname === '/admin/access' ||
         url.pathname === '/admin/catalog' ||
+        url.pathname === '/admin/requests' ||
         url.pathname === '/inventory' ||
-        /^\/w\/(XIHU|YUHANG)\/apply$/.test(url.pathname))
+        url.pathname === '/requests/me' ||
+        /^\/requests\/[0-9a-fA-F-]{36}$/.test(url.pathname) ||
+        /^\/w\/(XIHU|YUHANG)\/apply(\/normal)?$/.test(url.pathname))
     );
   } catch {
     return false;

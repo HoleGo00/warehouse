@@ -75,14 +75,18 @@ onMounted(load);
       </header>
 
       <div class="entry-grid">
-        <section class="flow-option" aria-labelledby="normal-title">
+        <RouterLink
+          class="flow-option flow-option-link"
+          :to="`/w/${entry.code}/apply/normal`"
+          aria-labelledby="normal-title"
+        >
           <ClipboardList :size="24" aria-hidden="true" />
           <div>
             <h2 id="normal-title">正常领用</h2>
             <p>按标准申请、审批和仓库发放流程办理。</p>
           </div>
-          <span class="coming-soon">后续任务开放</span>
-        </section>
+          <span class="available-now">开始申请</span>
+        </RouterLink>
 
         <section class="flow-option" aria-labelledby="temporary-title">
           <Clock3 :size="24" aria-hidden="true" />
@@ -96,8 +100,8 @@ onMounted(load);
 
       <aside class="entry-note">
         <div>
-          <strong>当前入口仅确认仓库上下文</strong>
-          <p>申请表单尚未启用，库存不会在本页面发生变动。</p>
+          <strong>正常领用已启用</strong>
+          <p>提交申请不会立即扣减库存，审核通过后预占，确认发放时才生成库存流水。</p>
         </div>
         <a
           class="download-link"
@@ -192,6 +196,15 @@ onMounted(load);
   background: #ffffff;
 }
 
+.flow-option-link {
+  text-decoration: none;
+}
+
+.flow-option-link:hover {
+  border-color: #7fa58f;
+  background: #f8fbf9;
+}
+
 .flow-option h2 {
   color: #26332d;
   font-size: 1.05rem;
@@ -209,6 +222,16 @@ onMounted(load);
   padding: 0.28rem 0.5rem;
   color: #755119;
   background: #fff0d2;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.available-now {
+  width: fit-content;
+  border-radius: 4px;
+  padding: 0.28rem 0.5rem;
+  color: #ffffff;
+  background: #24684f;
   font-size: 0.74rem;
   font-weight: 700;
 }

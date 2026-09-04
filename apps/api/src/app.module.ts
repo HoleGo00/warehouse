@@ -6,6 +6,7 @@ import {
   CatalogService,
   createDatabaseClient,
   InventoryQueryService,
+  NormalRequestService,
   WarehouseDirectoryService,
 } from '@glorychips/database';
 import { AccessController } from './access/access.controller.js';
@@ -22,6 +23,7 @@ import {
   DATABASE_CLIENT,
   FEISHU_IDENTITY_PROVIDER,
   INVENTORY_QUERY_SERVICE,
+  NORMAL_REQUEST_SERVICE,
   PRODUCT_IMAGE_CONTENT_PROVIDER,
   WAREHOUSE_DIRECTORY_SERVICE,
 } from './auth/tokens.js';
@@ -30,6 +32,8 @@ import { UnavailableProductImageContentProvider } from './catalog/product-image.
 import { DatabaseLifecycle } from './database/database-lifecycle.js';
 import { HealthController } from './health/health.controller.js';
 import { InventoryController } from './inventory/inventory.controller.js';
+import { AdminRequestsController } from './requests/admin-requests.controller.js';
+import { RequestsController } from './requests/requests.controller.js';
 import { WarehousesController } from './warehouses/warehouses.controller.js';
 
 @Module({
@@ -39,6 +43,8 @@ import { WarehousesController } from './warehouses/warehouses.controller.js';
     AccessController,
     CatalogController,
     InventoryController,
+    RequestsController,
+    AdminRequestsController,
     WarehousesController,
   ],
   providers: [
@@ -62,6 +68,12 @@ import { WarehousesController } from './warehouses/warehouses.controller.js';
       provide: INVENTORY_QUERY_SERVICE,
       useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
         new InventoryQueryService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: NORMAL_REQUEST_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new NormalRequestService(database),
       inject: [DATABASE_CLIENT],
     },
     {

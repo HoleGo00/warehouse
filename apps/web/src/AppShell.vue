@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { computed, provide, toRef } from 'vue';
 import type { AuthMeResponse } from '@glorychips/contracts';
-import { ClipboardList, LogOut, PackageSearch, Settings, Warehouse } from '@lucide/vue';
+import {
+  ClipboardCheck,
+  ClipboardList,
+  LogOut,
+  PackageSearch,
+  Settings,
+  Warehouse,
+} from '@lucide/vue';
 import { authSessionKey } from './features/auth/auth-context.js';
 
 const props = defineProps<{
@@ -12,6 +19,14 @@ const props = defineProps<{
 provide(authSessionKey, toRef(props, 'session'));
 
 const isSystemAdministrator = computed(() => props.session.access.roles.includes('SYSTEM_ADMIN'));
+const isWarehouseAdministrator = computed(
+  () => isSystemAdministrator.value || props.session.access.roles.includes('WAREHOUSE_ADMIN'),
+);
+const accountRoleLabel = computed(() => {
+  if (isSystemAdministrator.value) return '系统管理员';
+  if (props.session.access.roles.includes('WAREHOUSE_ADMIN')) return '仓库管理员';
+  return '公司员工';
+});
 </script>
 
 <template>
@@ -38,6 +53,14 @@ const isSystemAdministrator = computed(() => props.session.access.roles.includes
           <ClipboardList :size="18" aria-hidden="true" />
           余杭仓入口
         </RouterLink>
+        <RouterLink class="nav-link" to="/requests/me">
+          <ClipboardList :size="18" aria-hidden="true" />
+          我的申请
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/requests">
+          <ClipboardCheck :size="18" aria-hidden="true" />
+          审核与发放
+        </RouterLink>
         <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/catalog">
           <Settings :size="18" aria-hidden="true" />
           商品管理
@@ -47,9 +70,7 @@ const isSystemAdministrator = computed(() => props.session.access.roles.includes
       <div class="account-block">
         <div class="account-copy">
           <strong class="account-name">{{ session.user.name }}</strong>
-          <span class="account-role">
-            {{ isSystemAdministrator ? '系统管理员' : '公司员工' }}
-          </span>
+          <span class="account-role">{{ accountRoleLabel }}</span>
         </div>
         <button
           class="icon-button"

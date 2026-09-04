@@ -9,5 +9,8 @@ export * from './generated/prisma/client.js';
 export * from './inventory/errors.js';
 export * from './inventory/inventory-query-service.js';
 export * from './inventory/inventory-service.js';
+export * from './inventory/inventory-transaction-executor.js';
 export * from './inventory/stable-json.js';
 export type * from './inventory/types.js';
+export * from './requests/errors.js';
+export * from './requests/normal-request-service.js';
