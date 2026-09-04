@@ -21,6 +21,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
 | [Authentication and Authorization](./authentication-guidelines.md) | Feishu login, sessions, bootstrap and warehouse RBAC | Active |
 | [Catalog and Inventory Query](./catalog-inventory-query.md) | Catalog management, image proxy, inventory projection and warehouse QR contracts | Active |
+| [Normal Request Workflow](./normal-request-workflow.md) | Online normal borrowing state machine, atomic inventory actions and idempotency | Active |
 
 ---
 

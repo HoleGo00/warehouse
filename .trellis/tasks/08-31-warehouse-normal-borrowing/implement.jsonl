@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Backend service and controller placement"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Prisma transaction, locking, movement and outbox integrity"}
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Session, role and exact warehouse authorization contracts"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue component, accessibility and responsive conventions"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Shared Zod contract ownership and strict typing"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "Epic normal borrowing, return and authorization requirements"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/design.md", "reason": "Epic workflow, state, concurrency, idempotency and data model"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/return-policy.md", "reason": "Confirmed return rules for exhibit and internal requests"}

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend atomicity, idempotency and integration quality gate"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend async state and full project quality gate"}
+{"file": ".trellis/spec/frontend/inventory-catalog-ui.md", "reason": "Existing operational UI and browser acceptance baseline"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer contract and round-trip review"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/warehouse-and-qr-model.md", "reason": "Whole-order and warehouse QR acceptance decisions"}
