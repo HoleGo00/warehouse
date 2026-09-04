@@ -23,6 +23,13 @@ export const createCatalogApi = ({
     return parseApiResponse(response, catalogListResponseSchema);
   },
 
+  async listSelectable(): Promise<CatalogListResponse> {
+    const response = await fetchFunction(new URL('/catalog/selectable', baseUrl), {
+      credentials: 'include',
+    });
+    return parseApiResponse(response, catalogListResponseSchema);
+  },
+
   async create(command: CreateCatalogProductRequest): Promise<CatalogProductMutationResponse> {
     const response = await fetchFunction(new URL('/catalog', baseUrl), {
       method: 'POST',

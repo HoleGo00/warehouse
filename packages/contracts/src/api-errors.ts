@@ -12,7 +12,24 @@ export const catalogErrorCodes = [
 export const catalogErrorCodeSchema = z.enum(catalogErrorCodes);
 export type CatalogErrorCode = z.infer<typeof catalogErrorCodeSchema>;
 
-export const apiErrorCodes = [...authErrorCodes, ...catalogErrorCodes] as const;
+export const requestErrorCodes = [
+  'REQUEST_NOT_FOUND',
+  'REQUEST_STATE_CONFLICT',
+  'REQUEST_FORBIDDEN',
+  'REQUEST_ITEM_UNAVAILABLE',
+  'INVENTORY_INSUFFICIENT',
+  'IDEMPOTENCY_CONFLICT',
+  'INVALID_INVENTORY_COMMAND',
+  'RESERVATION_STATE_CONFLICT',
+] as const;
+export const requestErrorCodeSchema = z.enum(requestErrorCodes);
+export type RequestErrorCode = z.infer<typeof requestErrorCodeSchema>;
+
+export const apiErrorCodes = [
+  ...authErrorCodes,
+  ...catalogErrorCodes,
+  ...requestErrorCodes,
+] as const;
 export const apiErrorCodeSchema = z.enum(apiErrorCodes);
 export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;
 

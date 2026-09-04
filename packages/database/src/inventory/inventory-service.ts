@@ -1,18 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import {
-  calculateAvailability,
-  inventoryLineSchema,
-  movementLineSchema,
-} from '@glorychips/contracts';
+import { calculateAvailability, inventoryLineSchema } from '@glorychips/contracts';
 import type { InventoryAvailability } from '@glorychips/contracts';
 import type { Prisma, PrismaClient } from '../generated/prisma/client.js';
+import { executeIdempotently as executeDatabaseCommandIdempotently } from '../idempotency/execute-idempotently.js';
 import {
   IdempotencyConflictError,
   InsufficientInventoryError,
   InvalidInventoryCommandError,
   ReservationStateError,
 } from './errors.js';
-import { hashCommand } from './stable-json.js';
+import {
+  InventoryTransactionExecutor,
+  normalizeInventoryLines,
+  normalizeMovementLines,
+} from './inventory-transaction-executor.js';
 import type {
   ApplyMovementBatchCommand,
   InventoryLineInput,
@@ -71,44 +72,6 @@ const aggregateInventoryLines = (
   return [...quantities.values()].sort(compareKeys);
 };
 
-const aggregateMovementLines = (
-  lines: readonly MovementLineInput[],
-): readonly MovementLineInput[] => {
-  if (lines.length === 0) {
-    throw new InvalidInventoryCommandError('At least one movement line is required.');
-  }
-
-  const aggregated = new Map<string, MovementLineInput>();
-  for (const rawLine of lines) {
-    const line = movementLineSchema.parse(rawLine);
-    // Validate each submitted line before aggregation so contradictory signs
-    // cannot cancel into a seemingly valid net delta.
-    assertMovementDirection(line);
-    const key = keyOf(line);
-    const existing = aggregated.get(key);
-    if (existing !== undefined && existing.type !== line.type) {
-      throw new InvalidInventoryCommandError(
-        'A stock key cannot contain multiple movement types in one command.',
-        { warehouseId: line.warehouseId, variantId: line.variantId },
-      );
-    }
-    aggregated.set(key, {
-      warehouseId: line.warehouseId,
-      variantId: line.variantId,
-      quantityDelta: (existing?.quantityDelta ?? 0) + line.quantityDelta,
-      type: line.type,
-    });
-  }
-
-  const result = [...aggregated.values()]
-    .filter((line) => line.quantityDelta !== 0)
-    .sort(compareKeys);
-  if (result.length === 0) {
-    throw new InvalidInventoryCommandError('Movement lines cannot net to zero.');
-  }
-  return result;
-};
-
 const aggregateTransferLines = (
   warehouseId: string,
   lines: readonly TransferLineInput[],
@@ -120,25 +83,9 @@ const aggregateTransferLines = (
   return aggregateInventoryLines(normalized);
 };
 
-const inboundTypes = new Set([
-  'INBOUND',
-  'RETURN',
-  'TRANSFER_IN',
-  'STOCKTAKE_GAIN',
-  'MIGRATION_OPENING',
-]);
-const outboundTypes = new Set(['ISSUE', 'TRANSFER_OUT', 'STOCKTAKE_LOSS']);
-
-const assertMovementDirection = (line: MovementLineInput): void => {
-  if (inboundTypes.has(line.type) && line.quantityDelta < 0) {
-    throw new InvalidInventoryCommandError(`${line.type} requires a positive delta.`);
-  }
-  if (outboundTypes.has(line.type) && line.quantityDelta > 0) {
-    throw new InvalidInventoryCommandError(`${line.type} requires a negative delta.`);
-  }
-};
-
 export class InventoryService {
+  private readonly transactionExecutor = new InventoryTransactionExecutor();
+
   public constructor(private readonly database: PrismaClient) {}
 
   public async getAvailability(
@@ -179,62 +126,19 @@ export class InventoryService {
     command: ReserveBatchCommand,
     idempotencyKey: string,
   ): Promise<ReservationBatchResult> {
-    const lines = aggregateInventoryLines(command.lines);
+    const lines = normalizeInventoryLines(command.lines);
     const normalizedCommand = { ...command, lines };
 
     return this.executeIdempotently(
       idempotencyKey,
       'RESERVE_BATCH',
       normalizedCommand,
-      async (transaction) => {
-        const balances = await this.lockBalances(transaction, lines);
-        this.assertSufficient(balances, lines);
-
-        const batchId = randomUUID();
-        const reservationIds: string[] = [];
-        for (const line of lines) {
-          const reservation = await transaction.inventoryReservation.create({
-            data: {
-              batchId,
-              lineKey: `${idempotencyKey}:${keyOf(line)}`,
-              requestId: command.requestId,
-              warehouseId: line.warehouseId,
-              variantId: line.variantId,
-              quantity: line.quantity,
-              expiresAt: command.expiresAt,
-            },
-          });
-          reservationIds.push(reservation.id);
-          await transaction.inventoryBalance.update({
-            where: {
-              warehouseId_variantId: {
-                warehouseId: line.warehouseId,
-                variantId: line.variantId,
-              },
-            },
-            data: {
-              reservedQuantity: { increment: line.quantity },
-              version: { increment: 1 },
-            },
-          });
-        }
-
-        await transaction.auditLog.create({
-          data: {
-            actorUserId: command.actorUserId,
-            action: 'INVENTORY_RESERVED',
-            entityType: 'INVENTORY_RESERVATION_BATCH',
-            entityId: batchId,
-            after: toJson({ lines, reservationIds }),
-          },
-        });
-
-        return {
-          batchId,
-          reservationIds,
-          availability: await this.readAvailability(transaction, lines),
-        };
-      },
+      (transaction) =>
+        this.transactionExecutor.reserveBatchInTransaction(
+          transaction,
+          normalizedCommand,
+          idempotencyKey,
+        ),
     );
   }
 
@@ -242,81 +146,8 @@ export class InventoryService {
     command: ReleaseReservationCommand,
     idempotencyKey: string,
   ): Promise<ReleaseReservationResult> {
-    return this.executeIdempotently(
-      idempotencyKey,
-      'RELEASE_RESERVATION',
-      command,
-      async (transaction) => {
-        const initialReservations = await transaction.inventoryReservation.findMany({
-          where: { batchId: command.batchId, status: 'ACTIVE' },
-          orderBy: [{ warehouseId: 'asc' }, { variantId: 'asc' }],
-        });
-        if (initialReservations.length === 0) {
-          throw new ReservationStateError(command.batchId);
-        }
-
-        const lockLines = aggregateInventoryLines(
-          initialReservations.map((reservation) => ({
-            warehouseId: reservation.warehouseId,
-            variantId: reservation.variantId,
-            quantity: reservation.quantity,
-          })),
-        );
-        await this.lockBalances(transaction, lockLines);
-
-        // Re-read after the balance locks. A concurrent release/consume may have
-        // changed the reservation state while this transaction was waiting.
-        const reservations = await transaction.inventoryReservation.findMany({
-          where: { batchId: command.batchId, status: 'ACTIVE' },
-          orderBy: [{ warehouseId: 'asc' }, { variantId: 'asc' }],
-        });
-        if (reservations.length === 0) {
-          throw new ReservationStateError(command.batchId);
-        }
-        const lines = aggregateInventoryLines(
-          reservations.map((reservation) => ({
-            warehouseId: reservation.warehouseId,
-            variantId: reservation.variantId,
-            quantity: reservation.quantity,
-          })),
-        );
-
-        for (const line of lines) {
-          await transaction.inventoryBalance.update({
-            where: {
-              warehouseId_variantId: {
-                warehouseId: line.warehouseId,
-                variantId: line.variantId,
-              },
-            },
-            data: {
-              reservedQuantity: { decrement: line.quantity },
-              version: { increment: 1 },
-            },
-          });
-        }
-        await transaction.inventoryReservation.updateMany({
-          where: { batchId: command.batchId, status: 'ACTIVE' },
-          data: { status: 'RELEASED', releasedAt: new Date() },
-        });
-
-        const releasedReservationIds = reservations.map((reservation) => reservation.id);
-        await transaction.auditLog.create({
-          data: {
-            actorUserId: command.actorUserId,
-            action: 'INVENTORY_RESERVATION_RELEASED',
-            entityType: 'INVENTORY_RESERVATION_BATCH',
-            entityId: command.batchId,
-            after: toJson({ releasedReservationIds }),
-          },
-        });
-
-        return {
-          batchId: command.batchId,
-          releasedReservationIds,
-          availability: await this.readAvailability(transaction, lines),
-        };
-      },
+    return this.executeIdempotently(idempotencyKey, 'RELEASE_RESERVATION', command, (transaction) =>
+      this.transactionExecutor.releaseReservationInTransaction(transaction, command),
     );
   }
 
@@ -324,98 +155,19 @@ export class InventoryService {
     command: ApplyMovementBatchCommand,
     idempotencyKey: string,
   ): Promise<MovementBatchResult> {
-    const lines = aggregateMovementLines(command.lines);
-    lines.forEach(assertMovementDirection);
+    const lines = normalizeMovementLines(command.lines);
     const normalizedCommand = { ...command, lines };
 
     return this.executeIdempotently(
       idempotencyKey,
       'APPLY_MOVEMENT_BATCH',
       normalizedCommand,
-      async (transaction) => {
-        const balances = await this.lockBalances(transaction, lines);
-        const consumedReservations = await this.loadConsumedReservations(
+      (transaction) =>
+        this.transactionExecutor.applyMovementBatchInTransaction(
           transaction,
-          command.consumeReservationBatchId,
-          lines,
-        );
-
-        this.assertMovementBalances(balances, lines, consumedReservations);
-
-        if (command.consumeReservationBatchId !== undefined) {
-          await transaction.inventoryReservation.updateMany({
-            where: { batchId: command.consumeReservationBatchId, status: 'ACTIVE' },
-            data: { status: 'CONSUMED', releasedAt: new Date() },
-          });
-        }
-
-        const movementIds: string[] = [];
-        for (const [index, line] of lines.entries()) {
-          const balance = balances.get(keyOf(line));
-          if (balance === undefined) {
-            throw new InvalidInventoryCommandError('Locked inventory balance disappeared.', {
-              warehouseId: line.warehouseId,
-              variantId: line.variantId,
-            });
-          }
-          const quantityBefore = balance.confirmedFeishuQuantity + balance.pendingMovementDelta;
-          const movement = await transaction.inventoryMovement.create({
-            data: {
-              deduplicationKey: `${idempotencyKey}:${index}:${keyOf(line)}`,
-              businessNumber: command.businessNumber,
-              requestId: command.requestId,
-              warehouseId: line.warehouseId,
-              variantId: line.variantId,
-              type: line.type,
-              quantityDelta: line.quantityDelta,
-              quantityBefore,
-              quantityAfter: quantityBefore + line.quantityDelta,
-              source: command.source,
-              actorUserId: command.actorUserId,
-            },
-          });
-          movementIds.push(movement.id);
-          const reservedRelease = consumedReservations.get(keyOf(line)) ?? 0;
-          await transaction.inventoryBalance.update({
-            where: {
-              warehouseId_variantId: {
-                warehouseId: line.warehouseId,
-                variantId: line.variantId,
-              },
-            },
-            data: {
-              pendingMovementDelta: { increment: line.quantityDelta },
-              reservedQuantity: { decrement: reservedRelease },
-              version: { increment: 1 },
-              lastMovementId: movement.id,
-            },
-          });
-        }
-
-        const outboxJobId = await this.createMovementOutbox(
-          transaction,
+          normalizedCommand,
           idempotencyKey,
-          command.businessNumber,
-          movementIds,
-          lines.map((line) => line.variantId),
-        );
-        await transaction.auditLog.create({
-          data: {
-            actorUserId: command.actorUserId,
-            warehouseId: this.singleWarehouseId(lines),
-            action: 'INVENTORY_MOVEMENT_BATCH_APPLIED',
-            entityType: 'INVENTORY_MOVEMENT_BATCH',
-            entityId: command.businessNumber,
-            after: toJson({ movementIds, lines, outboxJobId }),
-          },
-        });
-
-        return {
-          movementIds,
-          outboxJobId,
-          availability: await this.readAvailability(transaction, lines),
-        };
-      },
+        ),
     );
   }
 
@@ -564,45 +316,15 @@ export class InventoryService {
     command: unknown,
     execute: (transaction: Transaction) => Promise<T>,
   ): Promise<T> {
-    if (key.trim().length === 0) {
-      throw new InvalidInventoryCommandError('An idempotency key is required.');
-    }
-    const requestHash = hashCommand(command);
-
-    return this.database.$transaction(
-      async (transaction) => {
-        // Serialize callers sharing a client idempotency key before the unique upsert.
-        // This avoids a P2002 race while preserving the same response for retries.
-        await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
-        const record = await transaction.idempotencyKey.upsert({
-          where: { key },
-          create: { key, operation, requestHash },
-          update: {},
-        });
-        if (record.operation !== operation || record.requestHash !== requestHash) {
-          throw new IdempotencyConflictError(key);
-        }
-        if (record.status === 'COMPLETED' && record.response !== null) {
-          return record.response as unknown as T;
-        }
-
-        const response = await execute(transaction);
-        await transaction.idempotencyKey.update({
-          where: { key },
-          data: {
-            status: 'COMPLETED',
-            response: toJson(response),
-            completedAt: new Date(),
-          },
-        });
-        return response;
-      },
-      {
-        isolationLevel: 'ReadCommitted',
-        maxWait: 5_000,
-        timeout: 20_000,
-      },
-    );
+    return executeDatabaseCommandIdempotently({
+      database: this.database,
+      key,
+      operation,
+      command,
+      invalidKeyError: () => new InvalidInventoryCommandError('An idempotency key is required.'),
+      conflictError: () => new IdempotencyConflictError(key),
+      execute,
+    });
   }
 
   private async lockBalances(

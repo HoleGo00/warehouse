@@ -21,6 +21,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [Inventory and Catalog UI](./inventory-catalog-ui.md) | Authenticated inventory, warehouse entry and catalog administration behavior | Active |
+| [Normal Request UI](./normal-request-ui.md) | Locked-warehouse claimant forms, request detail and administrator queues | Active |
 
 ---
 

@@ -11,7 +11,7 @@ export class InventoryDomainError extends Error {
 
 export class InsufficientInventoryError extends InventoryDomainError {
   public constructor(details: Readonly<Record<string, unknown>>) {
-    super('INSUFFICIENT_INVENTORY', 'One or more inventory lines are insufficient.', details);
+    super('INVENTORY_INSUFFICIENT', 'One or more inventory lines are insufficient.', details);
   }
 }
 

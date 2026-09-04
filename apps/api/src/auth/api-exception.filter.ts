@@ -1,9 +1,14 @@
 import { Catch, HttpException } from '@nestjs/common';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { apiErrorResponseSchema } from '@glorychips/contracts';
+import { apiErrorCodeSchema, apiErrorResponseSchema } from '@glorychips/contracts';
 import type { ApiErrorCode } from '@glorychips/contracts';
-import { AuthDomainError, CatalogDomainError } from '@glorychips/database';
+import {
+  AuthDomainError,
+  CatalogDomainError,
+  InventoryDomainError,
+  RequestDomainError,
+} from '@glorychips/database';
 import type { ApiResponse } from './http-types.js';
 
 const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
@@ -26,6 +31,14 @@ const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
   CATALOG_CATEGORY_LOCKED: 409,
   IMAGE_UNAVAILABLE: 503,
   PUBLIC_URL_NOT_READY: 503,
+  REQUEST_NOT_FOUND: 404,
+  REQUEST_STATE_CONFLICT: 409,
+  REQUEST_FORBIDDEN: 403,
+  REQUEST_ITEM_UNAVAILABLE: 409,
+  INVENTORY_INSUFFICIENT: 409,
+  IDEMPOTENCY_CONFLICT: 409,
+  INVALID_INVENTORY_COMMAND: 400,
+  RESERVATION_STATE_CONFLICT: 409,
 };
 
 @Catch()
@@ -33,11 +46,17 @@ export class ApiExceptionFilter implements ExceptionFilter {
   public catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<ApiResponse>();
     const traceId = randomUUID();
-    if (exception instanceof AuthDomainError || exception instanceof CatalogDomainError) {
-      console.info(JSON.stringify({ event: 'api_rejection', code: exception.code, traceId }));
-      response.status(statusByCode[exception.code] ?? 400).json(
+    if (
+      exception instanceof AuthDomainError ||
+      exception instanceof CatalogDomainError ||
+      exception instanceof InventoryDomainError ||
+      exception instanceof RequestDomainError
+    ) {
+      const code = apiErrorCodeSchema.parse(exception.code);
+      console.info(JSON.stringify({ event: 'api_rejection', code, traceId }));
+      response.status(statusByCode[code] ?? 400).json(
         apiErrorResponseSchema.parse({
-          code: exception.code,
+          code,
           message: exception.message,
           traceId,
         }),
