@@ -51,3 +51,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 商品库存查询与仓库二维码
+<!-- trellis-session: v=2 fp=c534120d9df196c3 -->
+
+**Date**: 2026-09-04
+**Task**: 商品库存查询与仓库二维码
+**Branch**: `codex/warehouse-catalog-inventory-qr`
+
+### Summary
+
+完成商品目录与规格管理、双仓只读库存查询、飞书图片代理边界、稳定仓库入口与二维码、Vue 管理和查询页面；通过 50 项常规测试、13 项 PostgreSQL 集成测试、构建与 1440x900/390x844 浏览器验收。真实主图和生产域名二维码按计划延期到后续任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `84c8c4c` | feat: 实现商品库存查询与仓库二维码 |
+| `ed39d29` | docs: 补全商品库存查询任务与规格 |
+
+### Status
+
+[OK] **Completed**
