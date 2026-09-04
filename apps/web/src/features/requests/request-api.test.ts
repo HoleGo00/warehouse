@@ -11,6 +11,7 @@ const responseBody = {
     warehouseName: '余杭仓',
     claimantId: '33333333-3333-4333-8333-333333333333',
     claimantName: '测试员工',
+    origin: 'ONLINE',
     type: 'INTERNAL',
     purposeObject: '测试',
     finalDestination: '测试部门',
@@ -25,8 +26,11 @@ const responseBody = {
     createdAt: '2026-09-04T00:00:00.000Z',
     updatedAt: '2026-09-04T00:00:00.000Z',
     latestReviewComment: null,
+    paperworkDueAt: null,
+    paperworkOverdue: false,
     allowedActions: {
       resubmit: false,
+      completePaperwork: false,
       cancel: true,
       review: false,
       fulfill: false,
@@ -105,5 +109,75 @@ describe('normal request API adapter', () => {
       'http://localhost:3000/admin/requests?warehouse=YUHANG&status=PENDING_RELEASE',
       `http://localhost:3000/admin/requests/${requestId}/fulfill`,
     ]);
+  });
+
+  it('uses the temporary paperwork and offline workflow endpoints', async () => {
+    const urls: string[] = [];
+    const methods: string[] = [];
+    const idempotencyKeys: (string | null)[] = [];
+    const api = createRequestApi({
+      baseUrl: 'http://localhost:3000',
+      fetchFunction: async (input, init) => {
+        urls.push(input.toString());
+        methods.push(init?.method ?? 'GET');
+        idempotencyKeys.push(new Headers(init?.headers).get('idempotency-key'));
+        if (input.toString().includes('/admin/claimants')) {
+          return new Response(
+            JSON.stringify({
+              items: [
+                {
+                  id: '33333333-3333-4333-8333-333333333333',
+                  name: '测试员工',
+                  avatarUrl: null,
+                },
+              ],
+            }),
+          );
+        }
+        if (input.toString().includes('/paperwork?')) {
+          return new Response(JSON.stringify({ items: [] }));
+        }
+        return new Response(JSON.stringify(responseBody));
+      },
+    });
+
+    await api.createTemporary(
+      { warehouse: 'YUHANG', items: [{ variantId, quantity: 1 }] },
+      'temporary-key',
+    );
+    await api.completePaperwork(
+      requestId,
+      {
+        type: 'INTERNAL',
+        purposeObject: '测试',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+      },
+      'paperwork-key',
+    );
+    await api.paperworkQueue({ warehouse: 'YUHANG', state: 'OVERDUE' });
+    await api.searchClaimants('测试 员工');
+    await api.createOffline(
+      {
+        warehouse: 'YUHANG',
+        claimantId: '33333333-3333-4333-8333-333333333333',
+        type: 'INTERNAL',
+        purposeObject: '测试',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+        items: [{ variantId, quantity: 1 }],
+      },
+      'offline-key',
+    );
+
+    expect(urls).toEqual([
+      'http://localhost:3000/requests/temporary',
+      `http://localhost:3000/requests/${requestId}/paperwork`,
+      'http://localhost:3000/admin/requests/paperwork?warehouse=YUHANG&state=OVERDUE',
+      'http://localhost:3000/admin/claimants?query=%E6%B5%8B%E8%AF%95+%E5%91%98%E5%B7%A5',
+      'http://localhost:3000/admin/requests/offline',
+    ]);
+    expect(methods).toEqual(['POST', 'PUT', 'GET', 'GET', 'POST']);
+    expect(idempotencyKeys).toEqual(['temporary-key', 'paperwork-key', null, null, 'offline-key']);
   });
 });

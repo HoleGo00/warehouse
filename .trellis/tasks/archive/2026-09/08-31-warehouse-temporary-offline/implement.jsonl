@@ -1,0 +1,11 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Backend service, controller and module ownership"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Prisma migration, transaction, locking, movement, outbox and audit integrity"}
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Session identity, active users, roles and exact warehouse authorization"}
+{"file": ".trellis/spec/backend/normal-request-workflow.md", "reason": "Existing request state machine, idempotency and inventory behavior to preserve"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue component, accessibility and responsive conventions"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "Incremental shadcn-vue adoption and visual prohibitions"}
+{"file": ".trellis/spec/frontend/normal-request-ui.md", "reason": "Existing request forms, actions, async safety and route behavior"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Shared Zod contract ownership and strict typing"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "Epic temporary, offline, deadline, audit and authorization requirements"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/design.md", "reason": "Epic workflow, concurrency, work calendar, outbox and data model"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/warehouse-and-qr-model.md", "reason": "Confirmed whole-order, QR, temporary deadline and offline decisions"}

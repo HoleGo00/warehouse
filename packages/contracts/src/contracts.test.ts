@@ -51,6 +51,8 @@ describe('shared contracts', () => {
       '/inventory?warehouse=YUHANG',
     );
     expect(normalizeAuthReturnPath('/admin/catalog')).toBe('/admin/catalog');
+    expect(normalizeAuthReturnPath('/admin/requests/offline')).toBe('/admin/requests/offline');
+    expect(normalizeAuthReturnPath('/w/YUHANG/apply/temporary')).toBe('/w/YUHANG/apply/temporary');
     expect(normalizeAuthReturnPath('/w/UNKNOWN/apply')).toBe('/');
     expect(normalizeAuthReturnPath('//evil.example/path')).toBe('/');
     expect(normalizeAuthReturnPath('https://evil.example/path')).toBe('/');

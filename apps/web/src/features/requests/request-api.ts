@@ -1,15 +1,21 @@
 import {
+  claimantCandidateListResponseSchema,
   normalRequestActionResponseSchema,
   normalRequestDetailResponseSchema,
   normalRequestListResponseSchema,
 } from '@glorychips/contracts';
 import type {
   CancelNormalRequest,
+  ClaimantCandidateListResponse,
+  CompleteTemporaryPaperwork,
+  CreateOfflineRequest,
   CreateNormalRequest,
+  CreateTemporaryRequest,
   NormalRequestActionResponse,
   NormalRequestAdminQueueQuery,
   NormalRequestDetailResponse,
   NormalRequestListResponse,
+  PaperworkQueueQuery,
   ResubmitNormalRequest,
   ReviewNormalRequest,
 } from '@glorychips/contracts';
@@ -35,6 +41,33 @@ export const createRequestApi = ({
   ): Promise<NormalRequestActionResponse> {
     const response = await fetchFunction(new URL('/requests/normal', baseUrl), {
       method: 'POST',
+      credentials: 'include',
+      headers: mutationHeaders(idempotencyKey),
+      body: JSON.stringify(command),
+    });
+    return parseApiResponse(response, normalRequestActionResponseSchema);
+  },
+
+  async createTemporary(
+    command: CreateTemporaryRequest,
+    idempotencyKey: string,
+  ): Promise<NormalRequestActionResponse> {
+    const response = await fetchFunction(new URL('/requests/temporary', baseUrl), {
+      method: 'POST',
+      credentials: 'include',
+      headers: mutationHeaders(idempotencyKey),
+      body: JSON.stringify(command),
+    });
+    return parseApiResponse(response, normalRequestActionResponseSchema);
+  },
+
+  async completePaperwork(
+    requestId: string,
+    command: CompleteTemporaryPaperwork,
+    idempotencyKey: string,
+  ): Promise<NormalRequestActionResponse> {
+    const response = await fetchFunction(new URL(`/requests/${requestId}/paperwork`, baseUrl), {
+      method: 'PUT',
       credentials: 'include',
       headers: mutationHeaders(idempotencyKey),
       body: JSON.stringify(command),
@@ -92,6 +125,34 @@ export const createRequestApi = ({
     url.searchParams.set('status', query.status);
     const response = await fetchFunction(url, { credentials: 'include' });
     return parseApiResponse(response, normalRequestListResponseSchema);
+  },
+
+  async paperworkQueue(query: PaperworkQueueQuery): Promise<NormalRequestListResponse> {
+    const url = new URL('/admin/requests/paperwork', baseUrl);
+    url.searchParams.set('warehouse', query.warehouse);
+    url.searchParams.set('state', query.state);
+    const response = await fetchFunction(url, { credentials: 'include' });
+    return parseApiResponse(response, normalRequestListResponseSchema);
+  },
+
+  async searchClaimants(query: string): Promise<ClaimantCandidateListResponse> {
+    const url = new URL('/admin/claimants', baseUrl);
+    url.searchParams.set('query', query);
+    const response = await fetchFunction(url, { credentials: 'include' });
+    return parseApiResponse(response, claimantCandidateListResponseSchema);
+  },
+
+  async createOffline(
+    command: CreateOfflineRequest,
+    idempotencyKey: string,
+  ): Promise<NormalRequestActionResponse> {
+    const response = await fetchFunction(new URL('/admin/requests/offline', baseUrl), {
+      method: 'POST',
+      credentials: 'include',
+      headers: mutationHeaders(idempotencyKey),
+      body: JSON.stringify(command),
+    });
+    return parseApiResponse(response, normalRequestActionResponseSchema);
   },
 
   async review(

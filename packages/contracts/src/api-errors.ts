@@ -21,6 +21,7 @@ export const requestErrorCodes = [
   'IDEMPOTENCY_CONFLICT',
   'INVALID_INVENTORY_COMMAND',
   'RESERVATION_STATE_CONFLICT',
+  'CLAIMANT_NOT_FOUND',
 ] as const;
 export const requestErrorCodeSchema = z.enum(requestErrorCodes);
 export type RequestErrorCode = z.infer<typeof requestErrorCodeSchema>;

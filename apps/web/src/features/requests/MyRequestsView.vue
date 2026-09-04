@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { onMounted, shallowRef } from 'vue';
-import type { NormalRequestSummary } from '@glorychips/contracts';
+import type { RequestSummary } from '@glorychips/contracts';
 import { ClipboardList, RefreshCw } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
 import { createRequestApi } from './request-api.js';
-import { requestStatusLabels, requestTypeLabels } from './request-view-model.js';
+import {
+  requestOriginLabels,
+  requestPurposeLabel,
+  requestStatusLabel,
+  requestTypeLabel,
+} from './request-view-model.js';
 
 const api = createRequestApi();
-const items = shallowRef<readonly NormalRequestSummary[]>([]);
+const items = shallowRef<readonly RequestSummary[]>([]);
 const loading = shallowRef(true);
 const errorMessage = shallowRef<string | null>(null);
 
@@ -28,20 +34,25 @@ onMounted(load);
 <template>
   <section class="page" aria-labelledby="my-requests-title">
     <header class="page-header">
-      <div>
-        <p>领用记录</p>
-        <h1 id="my-requests-title">我的申请</h1>
-      </div>
-      <button type="button" title="刷新" aria-label="刷新" :disabled="loading" @click="load">
+      <h1 id="my-requests-title">我的申请</h1>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        title="刷新"
+        aria-label="刷新"
+        :disabled="loading"
+        @click="load"
+      >
         <RefreshCw :size="18" aria-hidden="true" />
-      </button>
+      </Button>
     </header>
 
     <div v-if="loading" class="state" role="status">正在读取申请</div>
     <div v-else-if="errorMessage" class="state" role="alert">{{ errorMessage }}</div>
     <div v-else-if="items.length === 0" class="state">
       <ClipboardList :size="28" aria-hidden="true" />
-      <strong>还没有正常领用申请</strong>
+      <strong>还没有领用记录</strong>
     </div>
     <div v-else class="request-list">
       <RouterLink
@@ -51,13 +62,23 @@ onMounted(load);
         :to="`/requests/${item.id}`"
       >
         <div class="row-main">
-          <span class="request-number">{{ item.requestNumber }}</span>
-          <strong>{{ requestTypeLabels[item.type] }} · {{ item.purposeObject }}</strong>
+          <span class="request-number"
+            >{{ item.requestNumber }} · {{ requestOriginLabels[item.origin] }}</span
+          >
+          <strong
+            >{{ requestTypeLabel(item.type) }} ·
+            {{ requestPurposeLabel(item.purposeObject) }}</strong
+          >
           <!-- prettier-ignore -->
           <span>{{ item.warehouseName }} · {{ item.itemCount }} 个规格 · {{ item.totalQuantity }} 件</span>
+          <span v-if="item.paperworkDueAt" :class="{ overdue: item.paperworkOverdue }">
+            手续截止 {{ new Date(item.paperworkDueAt).toLocaleString('zh-CN') }}
+          </span>
         </div>
         <div class="row-state">
-          <span :data-status="item.status">{{ requestStatusLabels[item.status] }}</span>
+          <span :data-status="item.status" :data-overdue="item.paperworkOverdue">
+            {{ requestStatusLabel(item.status, item.origin) }}
+          </span>
           <time :datetime="item.updatedAt">{{
             new Date(item.updatedAt).toLocaleString('zh-CN')
           }}</time>
@@ -89,19 +110,11 @@ onMounted(load);
   border-bottom: 1px solid #d8ded9;
 }
 
-.page-header p,
 .page-header h1 {
   margin: 0;
 }
 
-.page-header p {
-  color: #9a542f;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
 .page-header h1 {
-  margin-top: 0.15rem;
   font-size: 1.45rem;
 }
 
@@ -184,6 +197,11 @@ onMounted(load);
 .row-state > span[data-status='CANCELLED'] {
   color: #874334;
   background: #f9e9e5;
+}
+
+.row-state > span[data-overdue='true'],
+.overdue {
+  color: #9f382b;
 }
 
 @media (max-width: 620px) {

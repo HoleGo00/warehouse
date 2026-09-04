@@ -5,7 +5,9 @@ import WarehouseEntryView from '../features/warehouse-entry/WarehouseEntryView.v
 import AdminRequestsView from '../features/requests/AdminRequestsView.vue';
 import MyRequestsView from '../features/requests/MyRequestsView.vue';
 import NormalRequestApplyView from '../features/requests/NormalRequestApplyView.vue';
+import OfflineRequestView from '../features/requests/OfflineRequestView.vue';
 import RequestDetailView from '../features/requests/RequestDetailView.vue';
+import TemporaryRequestApplyView from '../features/requests/TemporaryRequestApplyView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -18,9 +20,19 @@ export const router = createRouter({
       name: 'normal-request-apply',
       component: NormalRequestApplyView,
     },
+    {
+      path: '/w/:warehouseCode/apply/temporary',
+      name: 'temporary-request-apply',
+      component: TemporaryRequestApplyView,
+    },
     { path: '/requests/me', name: 'my-requests', component: MyRequestsView },
     { path: '/requests/:requestId', name: 'request-detail', component: RequestDetailView },
     { path: '/admin/requests', name: 'admin-requests', component: AdminRequestsView },
+    {
+      path: '/admin/requests/offline',
+      name: 'offline-request-create',
+      component: OfflineRequestView,
+    },
     { path: '/admin/catalog', name: 'catalog-admin', component: CatalogAdminView },
     { path: '/:pathMatch(.*)*', redirect: '/inventory' },
   ],

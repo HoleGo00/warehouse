@@ -494,7 +494,7 @@ model Request {
   warehouseId        String                 @map("warehouse_id") @db.Uuid
   claimantId         String                 @map("claimant_id") @db.Uuid
   origin             RequestOrigin
-  type               RequestType
+  type               RequestType?
   purposeObject      String?                @map("purpose_object")
   finalDestination   String?                @map("final_destination")
   notes              String?

@@ -2,14 +2,31 @@
 import { computed, shallowRef, watch } from 'vue';
 import type {
   NormalRequestAdminQueueStatus,
-  NormalRequestDetail,
-  NormalRequestSummary,
+  PaperworkQueueState,
+  RequestDetail,
+  RequestSummary,
   WarehouseCode,
 } from '@glorychips/contracts';
-import { Check, PackageCheck, RefreshCw, RotateCcw, X } from '@lucide/vue';
+import { Check, FilePlus2, PackageCheck, RefreshCw, RotateCcw, X } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuthenticatedSession } from '../auth/auth-context.js';
 import { createIdempotencyKeyStore, createRequestApi } from './request-api.js';
-import { requestStatusLabels, requestTypeLabels, returnModeLabels } from './request-view-model.js';
+import {
+  requestOriginLabels,
+  requestPurposeLabel,
+  requestStatusLabel,
+  requestTypeLabel,
+  returnModeLabels,
+} from './request-view-model.js';
 
 const session = useAuthenticatedSession();
 const api = createRequestApi();
@@ -22,9 +39,11 @@ const managedWarehouses = computed<readonly WarehouseCode[]>(() =>
     : session.value.access.warehouses,
 );
 const warehouse = shallowRef<WarehouseCode>(managedWarehouses.value[0] ?? 'XIHU');
+const queueMode = shallowRef<'NORMAL' | 'PAPERWORK'>('NORMAL');
 const status = shallowRef<NormalRequestAdminQueueStatus>('PENDING_APPROVAL');
-const items = shallowRef<readonly NormalRequestSummary[]>([]);
-const selected = shallowRef<NormalRequestDetail | null>(null);
+const paperworkState = shallowRef<PaperworkQueueState>('REQUIRED');
+const items = shallowRef<readonly RequestSummary[]>([]);
+const selected = shallowRef<RequestDetail | null>(null);
 const comment = shallowRef('');
 const cancelReason = shallowRef('');
 const loading = shallowRef(true);
@@ -42,7 +61,10 @@ const load = async (): Promise<void> => {
   selected.value = null;
   items.value = [];
   try {
-    const response = await api.adminQueue({ warehouse: warehouse.value, status: status.value });
+    const response =
+      queueMode.value === 'NORMAL'
+        ? await api.adminQueue({ warehouse: warehouse.value, status: status.value })
+        : await api.paperworkQueue({ warehouse: warehouse.value, state: paperworkState.value });
     if (loadId !== latestLoad) return;
     items.value = response.items;
   } catch (error: unknown) {
@@ -53,7 +75,7 @@ const load = async (): Promise<void> => {
   }
 };
 
-watch([warehouse, status], load, { immediate: true });
+watch([warehouse, queueMode, status, paperworkState], load, { immediate: true });
 
 const selectRequest = async (requestId: string): Promise<void> => {
   const selectionId = ++latestSelection;
@@ -97,7 +119,16 @@ const review = async (decision: 'APPROVED' | 'REJECTED'): Promise<void> => {
       { decision: command.decision, comment: command.comment },
       reviewKeys.keyFor(command),
     );
-    await completeAction(decision === 'APPROVED' ? '整单已批准并预占库存' : '申请已整单退回');
+    const isTemporary = selected.value.origin === 'EXPRESS';
+    await completeAction(
+      decision === 'APPROVED'
+        ? isTemporary
+          ? '临时领用手续已审核通过'
+          : '整单已批准并预占库存'
+        : isTemporary
+          ? '手续已退回补正'
+          : '申请已整单退回',
+    );
   } catch (error: unknown) {
     errorMessage.value = error instanceof Error ? error.message : '审核操作失败';
   } finally {
@@ -146,43 +177,115 @@ const cancel = async (): Promise<void> => {
 <template>
   <section class="page" aria-labelledby="admin-requests-title">
     <header class="page-header">
-      <div>
-        <p>仓库作业</p>
-        <h1 id="admin-requests-title">正常领用审核与发放</h1>
+      <h1 id="admin-requests-title">领用审核与发放</h1>
+      <div class="header-actions">
+        <Button as-child>
+          <RouterLink class="offline-link" to="/admin/requests/offline">
+            <FilePlus2 :size="17" aria-hidden="true" />线下登记
+          </RouterLink>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          title="刷新"
+          aria-label="刷新"
+          :disabled="loading"
+          @click="load"
+        >
+          <RefreshCw :size="18" aria-hidden="true" />
+        </Button>
       </div>
-      <button type="button" title="刷新" aria-label="刷新" :disabled="loading" @click="load">
-        <RefreshCw :size="18" aria-hidden="true" />
-      </button>
     </header>
 
     <div v-if="managedWarehouses.length === 0" class="state" role="alert">没有可管理的仓库</div>
     <template v-else>
       <div class="filters" aria-label="队列筛选">
-        <label>
-          <span>仓库</span>
-          <select v-model="warehouse" :disabled="loading || acting">
-            <option v-for="code in managedWarehouses" :key="code" :value="code">
-              {{ code === 'XIHU' ? '西湖仓' : '余杭仓' }}
-            </option>
-          </select>
-        </label>
-        <div class="segments" role="group" aria-label="申请状态">
-          <button
-            type="button"
-            :aria-pressed="status === 'PENDING_APPROVAL'"
-            :disabled="loading || acting"
-            @click="status = 'PENDING_APPROVAL'"
-          >
-            待审核
-          </button>
-          <button
-            type="button"
-            :aria-pressed="status === 'PENDING_RELEASE'"
-            :disabled="loading || acting"
-            @click="status = 'PENDING_RELEASE'"
-          >
-            待发放
-          </button>
+        <div class="filter-field">
+          <Label for="admin-request-warehouse">仓库</Label>
+          <Select v-model="warehouse" :disabled="loading || acting">
+            <SelectTrigger id="admin-request-warehouse" class="warehouse-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="code in managedWarehouses" :key="code" :value="code">
+                {{ code === 'XIHU' ? '西湖仓' : '余杭仓' }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="filter-groups">
+          <div class="segments" role="group" aria-label="队列类型">
+            <Button
+              type="button"
+              :variant="queueMode === 'NORMAL' ? 'default' : 'ghost'"
+              :aria-pressed="queueMode === 'NORMAL'"
+              :disabled="loading || acting"
+              @click="queueMode = 'NORMAL'"
+            >
+              审核发放
+            </Button>
+            <Button
+              type="button"
+              :variant="queueMode === 'PAPERWORK' ? 'default' : 'ghost'"
+              :aria-pressed="queueMode === 'PAPERWORK'"
+              :disabled="loading || acting"
+              @click="queueMode = 'PAPERWORK'"
+            >
+              补手续
+            </Button>
+          </div>
+
+          <div v-if="queueMode === 'NORMAL'" class="segments" role="group" aria-label="申请状态">
+            <Button
+              type="button"
+              :variant="status === 'PENDING_APPROVAL' ? 'default' : 'ghost'"
+              :aria-pressed="status === 'PENDING_APPROVAL'"
+              :disabled="loading || acting"
+              @click="status = 'PENDING_APPROVAL'"
+            >
+              待审核
+            </Button>
+            <Button
+              type="button"
+              :variant="status === 'PENDING_RELEASE' ? 'default' : 'ghost'"
+              :aria-pressed="status === 'PENDING_RELEASE'"
+              :disabled="loading || acting"
+              @click="status = 'PENDING_RELEASE'"
+            >
+              待发放
+            </Button>
+          </div>
+
+          <div v-else class="segments three" role="group" aria-label="手续状态">
+            <Button
+              type="button"
+              :variant="paperworkState === 'REQUIRED' ? 'default' : 'ghost'"
+              :aria-pressed="paperworkState === 'REQUIRED'"
+              :disabled="loading || acting"
+              @click="paperworkState = 'REQUIRED'"
+            >
+              待补手续
+            </Button>
+            <Button
+              type="button"
+              :variant="paperworkState === 'CORRECTION' ? 'default' : 'ghost'"
+              :aria-pressed="paperworkState === 'CORRECTION'"
+              :disabled="loading || acting"
+              @click="paperworkState = 'CORRECTION'"
+            >
+              待补正
+            </Button>
+            <Button
+              type="button"
+              :variant="paperworkState === 'OVERDUE' ? 'default' : 'ghost'"
+              :aria-pressed="paperworkState === 'OVERDUE'"
+              :disabled="loading || acting"
+              @click="paperworkState = 'OVERDUE'"
+            >
+              已超期
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -204,8 +307,14 @@ const cancel = async (): Promise<void> => {
             @click="selectRequest(item.id)"
           >
             <span>{{ item.requestNumber }}</span>
-            <strong>{{ item.claimantName }} · {{ requestTypeLabels[item.type] }}</strong>
-            <small>{{ item.totalQuantity }} 件 · {{ item.purposeObject }}</small>
+            <strong>{{ item.claimantName }} · {{ requestTypeLabel(item.type) }}</strong>
+            <small
+              >{{ requestOriginLabels[item.origin] }} · {{ item.totalQuantity }} 件 ·
+              {{ requestPurposeLabel(item.purposeObject) }}</small
+            >
+            <small v-if="item.paperworkDueAt" :class="{ overdue: item.paperworkOverdue }">
+              {{ new Date(item.paperworkDueAt).toLocaleString('zh-CN') }}
+            </small>
           </button>
         </div>
 
@@ -217,12 +326,18 @@ const cancel = async (): Promise<void> => {
                 <span>{{ selected.requestNumber }}</span>
                 <h2>{{ selected.claimantName }}</h2>
               </div>
-              <strong>{{ requestStatusLabels[selected.status] }}</strong>
+              <strong :class="{ overdue: selected.paperworkOverdue }">{{
+                requestStatusLabel(selected.status, selected.origin)
+              }}</strong>
             </div>
             <dl class="detail-grid">
               <div>
+                <dt>来源</dt>
+                <dd>{{ requestOriginLabels[selected.origin] }}</dd>
+              </div>
+              <div>
                 <dt>类型</dt>
-                <dd>{{ requestTypeLabels[selected.type] }}</dd>
+                <dd>{{ requestTypeLabel(selected.type) }}</dd>
               </div>
               <div>
                 <dt>归还</dt>
@@ -230,11 +345,17 @@ const cancel = async (): Promise<void> => {
               </div>
               <div>
                 <dt>用途 / 对象</dt>
-                <dd>{{ selected.purposeObject }}</dd>
+                <dd>{{ selected.purposeObject ?? '待补手续' }}</dd>
               </div>
               <div>
                 <dt>最终去向</dt>
-                <dd>{{ selected.finalDestination }}</dd>
+                <dd>{{ selected.finalDestination ?? '待补手续' }}</dd>
+              </div>
+              <div v-if="selected.paperworkDueAt">
+                <dt>手续截止</dt>
+                <dd :class="{ overdue: selected.paperworkOverdue }">
+                  {{ new Date(selected.paperworkDueAt).toLocaleString('zh-CN') }}
+                </dd>
               </div>
             </dl>
             <div class="item-list">
@@ -247,22 +368,26 @@ const cancel = async (): Promise<void> => {
             </div>
 
             <div v-if="selected.allowedActions.review" class="action-panel">
-              <label>
-                <span>审核意见（退回时必填）</span>
-                <textarea v-model="comment" rows="3" maxlength="1000" />
-              </label>
+              <div class="action-field">
+                <Label for="review-comment">审核意见（退回时必填）</Label>
+                <Textarea id="review-comment" v-model="comment" rows="3" maxlength="1000" />
+              </div>
               <div class="button-row">
-                <button type="button" :disabled="acting" @click="review('APPROVED')">
-                  <Check :size="17" aria-hidden="true" />批准并预占
-                </button>
-                <button
-                  class="danger"
+                <Button type="button" :disabled="acting" @click="review('APPROVED')">
+                  <Check :size="17" aria-hidden="true" />{{
+                    selected.origin === 'EXPRESS' ? '通过手续' : '批准并预占'
+                  }}
+                </Button>
+                <Button
                   type="button"
+                  variant="destructive"
                   :disabled="acting || comment.trim().length === 0"
                   @click="review('REJECTED')"
                 >
-                  <RotateCcw :size="17" aria-hidden="true" />整单退回
-                </button>
+                  <RotateCcw :size="17" aria-hidden="true" />{{
+                    selected.origin === 'EXPRESS' ? '退回补正' : '整单退回'
+                  }}
+                </Button>
               </div>
             </div>
 
@@ -270,27 +395,32 @@ const cancel = async (): Promise<void> => {
               v-if="selected.allowedActions.fulfill || selected.allowedActions.adminCancel"
               class="action-panel"
             >
-              <button
+              <Button
                 v-if="selected.allowedActions.fulfill"
                 type="button"
                 :disabled="acting"
                 @click="fulfill"
               >
                 <PackageCheck :size="17" aria-hidden="true" />确认整单发放
-              </button>
-              <label v-if="selected.allowedActions.adminCancel">
-                <span>管理员取消原因</span>
-                <textarea v-model="cancelReason" rows="2" maxlength="1000" />
-              </label>
-              <button
+              </Button>
+              <div v-if="selected.allowedActions.adminCancel" class="action-field">
+                <Label for="admin-cancel-reason">管理员取消原因</Label>
+                <Textarea
+                  id="admin-cancel-reason"
+                  v-model="cancelReason"
+                  rows="2"
+                  maxlength="1000"
+                />
+              </div>
+              <Button
                 v-if="selected.allowedActions.adminCancel"
-                class="danger"
                 type="button"
+                variant="destructive"
                 :disabled="acting || cancelReason.trim().length === 0"
                 @click="cancel"
               >
                 <X :size="17" aria-hidden="true" />取消并释放预占
-              </button>
+              </Button>
             </div>
           </template>
         </div>
@@ -306,6 +436,7 @@ const cancel = async (): Promise<void> => {
 }
 
 .page-header,
+.header-actions,
 .filters,
 .workspace,
 .detail-heading,
@@ -322,21 +453,33 @@ const cancel = async (): Promise<void> => {
   border-bottom: 1px solid #d8ded9;
 }
 
-.page-header p,
 .page-header h1,
 .detail-heading h2 {
   margin: 0;
 }
 
-.page-header p {
-  color: #9a542f;
-  font-size: 0.75rem;
-  font-weight: 800;
+.page-header h1 {
+  font-size: 1.4rem;
 }
 
-.page-header h1 {
-  margin-top: 0.15rem;
-  font-size: 1.4rem;
+.header-actions {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.offline-link {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #24694f;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: #fff;
+  background: #24694f;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
 .page-header button {
@@ -357,8 +500,14 @@ const cancel = async (): Promise<void> => {
   padding: 1rem 0;
 }
 
-.filters label,
-.action-panel label {
+.filter-groups {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-field,
+.action-field {
   display: grid;
   gap: 0.35rem;
   color: #56635c;
@@ -366,7 +515,6 @@ const cancel = async (): Promise<void> => {
   font-weight: 800;
 }
 
-select,
 textarea {
   min-height: 40px;
   border: 1px solid #c8d0ca;
@@ -374,6 +522,11 @@ textarea {
   padding: 0.5rem 0.6rem;
   background: #ffffff;
   font: inherit;
+}
+
+.warehouse-select {
+  width: 150px;
+  min-height: 40px;
 }
 
 textarea {
@@ -387,6 +540,10 @@ textarea {
   border: 1px solid #c8d0ca;
   border-radius: 6px;
   overflow: hidden;
+}
+
+.segments.three {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .segments button {
@@ -443,6 +600,11 @@ dt {
 .queue-row strong,
 .queue-row small {
   overflow-wrap: anywhere;
+}
+
+.overdue {
+  color: #a23c2e !important;
+  font-weight: 800;
 }
 
 .detail-pane {
@@ -536,8 +698,9 @@ dd {
   cursor: pointer;
 }
 
-.action-panel button.danger {
+.action-panel button[data-variant='destructive'] {
   border-color: #a54c39;
+  color: #ffffff;
   background: #a54c39;
 }
 
@@ -569,9 +732,22 @@ button:disabled {
     flex-direction: column;
   }
 
-  .filters select,
+  .filter-groups {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .warehouse-select,
   .segments {
     width: 100%;
+  }
+
+  .page-header {
+    align-items: flex-start;
+  }
+  .header-actions {
+    flex-shrink: 0;
   }
 
   .workspace {

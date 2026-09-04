@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   approvalDecisionSchema,
+  requestOriginSchema,
   requestStatusSchema,
   requestTypeSchema,
   returnModeSchema,
@@ -27,24 +28,27 @@ const dateOnlySchema = z
 
 export const idempotencyKeySchema = z.string().trim().min(1).max(128);
 
-export const normalRequestItemInputSchema = z.object({
+export const requestItemInputSchema = z.object({
   variantId: z.uuid(),
   quantity: z.number().int().positive().max(10_000),
 });
-export type NormalRequestItemInput = z.infer<typeof normalRequestItemInputSchema>;
+export type RequestItemInput = z.infer<typeof requestItemInputSchema>;
+export const normalRequestItemInputSchema = requestItemInputSchema;
+export type NormalRequestItemInput = RequestItemInput;
 
-const normalRequestFieldsSchema = z.object({
+const requestItemsSchema = z.array(requestItemInputSchema).min(1).max(100);
+const requestBusinessFieldsSchema = z.object({
   type: requestTypeSchema,
   purposeObject: businessTextSchema,
   finalDestination: businessTextSchema,
   notes: optionalNotesSchema,
   returnMode: returnModeSchema,
   expectedReturnDate: dateOnlySchema.nullable().optional(),
-  items: z.array(normalRequestItemInputSchema).min(1).max(100),
 });
+const normalRequestFieldsSchema = requestBusinessFieldsSchema.extend({ items: requestItemsSchema });
 
-const refineNormalRequest = (
-  value: z.infer<typeof normalRequestFieldsSchema>,
+const refineRequestItems = (
+  value: { readonly items: readonly RequestItemInput[] },
   context: z.RefinementCtx,
 ): void => {
   const variantIds = value.items.map((item) => item.variantId);
@@ -55,7 +59,12 @@ const refineNormalRequest = (
       path: ['items'],
     });
   }
+};
 
+const refineBusinessFields = (
+  value: z.infer<typeof requestBusinessFieldsSchema>,
+  context: z.RefinementCtx,
+): void => {
   const hasDate = value.expectedReturnDate !== undefined && value.expectedReturnDate !== null;
   if (value.type === 'GIFT' || value.type === 'SALE') {
     if (value.returnMode !== 'NOT_REQUIRED' || hasDate) {
@@ -95,6 +104,14 @@ const refineNormalRequest = (
   }
 };
 
+const refineNormalRequest = (
+  value: z.infer<typeof normalRequestFieldsSchema>,
+  context: z.RefinementCtx,
+): void => {
+  refineRequestItems(value, context);
+  refineBusinessFields(value, context);
+};
+
 export const normalRequestDraftSchema = normalRequestFieldsSchema.superRefine(refineNormalRequest);
 export type NormalRequestDraft = z.infer<typeof normalRequestDraftSchema>;
 
@@ -105,6 +122,20 @@ export type CreateNormalRequest = z.infer<typeof createNormalRequestSchema>;
 
 export const resubmitNormalRequestSchema = normalRequestDraftSchema;
 export type ResubmitNormalRequest = z.infer<typeof resubmitNormalRequestSchema>;
+
+export const createTemporaryRequestSchema = z
+  .object({ warehouse: warehouseCodeSchema, items: requestItemsSchema })
+  .superRefine(refineRequestItems);
+export type CreateTemporaryRequest = z.infer<typeof createTemporaryRequestSchema>;
+
+export const completeTemporaryPaperworkSchema =
+  requestBusinessFieldsSchema.superRefine(refineBusinessFields);
+export type CompleteTemporaryPaperwork = z.infer<typeof completeTemporaryPaperworkSchema>;
+
+export const createOfflineRequestSchema = normalRequestFieldsSchema
+  .extend({ warehouse: warehouseCodeSchema, claimantId: z.uuid() })
+  .superRefine(refineNormalRequest);
+export type CreateOfflineRequest = z.infer<typeof createOfflineRequestSchema>;
 
 export const reviewNormalRequestSchema = z
   .object({
@@ -121,6 +152,8 @@ export const reviewNormalRequestSchema = z
     }
   });
 export type ReviewNormalRequest = z.infer<typeof reviewNormalRequestSchema>;
+export const reviewRequestSchema = reviewNormalRequestSchema;
+export type ReviewRequest = ReviewNormalRequest;
 
 export const cancelNormalRequestSchema = z.object({
   reason: z.string().trim().min(1).max(1000),
@@ -140,16 +173,34 @@ export const normalRequestAdminQueueQuerySchema = z.object({
 });
 export type NormalRequestAdminQueueQuery = z.infer<typeof normalRequestAdminQueueQuerySchema>;
 
-export const normalRequestAllowedActionsSchema = z.object({
+export const paperworkQueueStates = ['REQUIRED', 'CORRECTION', 'OVERDUE'] as const;
+export const paperworkQueueStateSchema = z.enum(paperworkQueueStates);
+export type PaperworkQueueState = z.infer<typeof paperworkQueueStateSchema>;
+
+export const paperworkQueueQuerySchema = z.object({
+  warehouse: warehouseCodeSchema,
+  state: paperworkQueueStateSchema,
+});
+export type PaperworkQueueQuery = z.infer<typeof paperworkQueueQuerySchema>;
+
+export const claimantSearchQuerySchema = z.object({
+  query: z.string().trim().max(100).default(''),
+});
+export type ClaimantSearchQuery = z.infer<typeof claimantSearchQuerySchema>;
+
+export const requestAllowedActionsSchema = z.object({
   resubmit: z.boolean(),
+  completePaperwork: z.boolean(),
   cancel: z.boolean(),
   review: z.boolean(),
   fulfill: z.boolean(),
   adminCancel: z.boolean(),
 });
-export type NormalRequestAllowedActions = z.infer<typeof normalRequestAllowedActionsSchema>;
+export type RequestAllowedActions = z.infer<typeof requestAllowedActionsSchema>;
+export const normalRequestAllowedActionsSchema = requestAllowedActionsSchema;
+export type NormalRequestAllowedActions = RequestAllowedActions;
 
-export const normalRequestItemSchema = z.object({
+export const requestItemSchema = z.object({
   id: z.uuid(),
   productId: z.uuid(),
   variantId: z.uuid(),
@@ -158,9 +209,11 @@ export const normalRequestItemSchema = z.object({
   size: z.string().min(1).nullable(),
   quantity: z.number().int().positive(),
 });
-export type NormalRequestItem = z.infer<typeof normalRequestItemSchema>;
+export type RequestItem = z.infer<typeof requestItemSchema>;
+export const normalRequestItemSchema = requestItemSchema;
+export type NormalRequestItem = RequestItem;
 
-export const normalRequestApprovalSchema = z.object({
+export const requestApprovalSchema = z.object({
   id: z.uuid(),
   reviewerId: z.uuid(),
   reviewerName: z.string().min(1),
@@ -170,17 +223,21 @@ export const normalRequestApprovalSchema = z.object({
   nextStatus: requestStatusSchema,
   reviewedAt: z.iso.datetime(),
 });
-export type NormalRequestApproval = z.infer<typeof normalRequestApprovalSchema>;
+export type RequestApproval = z.infer<typeof requestApprovalSchema>;
+export const normalRequestApprovalSchema = requestApprovalSchema;
+export type NormalRequestApproval = RequestApproval;
 
-export const normalRequestFulfillmentSchema = z.object({
+export const requestFulfillmentSchema = z.object({
   id: z.uuid(),
   executorId: z.uuid(),
   executorName: z.string().min(1),
   fulfilledAt: z.iso.datetime(),
 });
-export type NormalRequestFulfillment = z.infer<typeof normalRequestFulfillmentSchema>;
+export type RequestFulfillment = z.infer<typeof requestFulfillmentSchema>;
+export const normalRequestFulfillmentSchema = requestFulfillmentSchema;
+export type NormalRequestFulfillment = RequestFulfillment;
 
-export const normalRequestReturnObligationSchema = z.object({
+export const requestReturnObligationSchema = z.object({
   id: z.uuid(),
   variantId: z.uuid(),
   trigger: returnTriggerSchema,
@@ -189,18 +246,21 @@ export const normalRequestReturnObligationSchema = z.object({
   returnedQuantity: z.number().int().nonnegative(),
   status: returnStatusSchema,
 });
-export type NormalRequestReturnObligation = z.infer<typeof normalRequestReturnObligationSchema>;
+export type RequestReturnObligation = z.infer<typeof requestReturnObligationSchema>;
+export const normalRequestReturnObligationSchema = requestReturnObligationSchema;
+export type NormalRequestReturnObligation = RequestReturnObligation;
 
-export const normalRequestSummarySchema = z.object({
+export const requestSummarySchema = z.object({
   id: z.uuid(),
   requestNumber: z.string().min(1),
   warehouse: warehouseCodeSchema,
   warehouseName: z.string().min(1),
   claimantId: z.uuid(),
   claimantName: z.string().min(1),
-  type: requestTypeSchema,
-  purposeObject: z.string().min(1),
-  finalDestination: z.string().min(1),
+  origin: requestOriginSchema,
+  type: requestTypeSchema.nullable(),
+  purposeObject: z.string().min(1).nullable(),
+  finalDestination: z.string().min(1).nullable(),
   returnMode: returnModeSchema,
   expectedReturnDate: dateOnlySchema.nullable(),
   status: requestStatusSchema,
@@ -211,26 +271,48 @@ export const normalRequestSummarySchema = z.object({
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   latestReviewComment: z.string().nullable(),
-  allowedActions: normalRequestAllowedActionsSchema,
+  paperworkDueAt: z.iso.datetime().nullable(),
+  paperworkOverdue: z.boolean(),
+  allowedActions: requestAllowedActionsSchema,
 });
-export type NormalRequestSummary = z.infer<typeof normalRequestSummarySchema>;
+export type RequestSummary = z.infer<typeof requestSummarySchema>;
+export const normalRequestSummarySchema = requestSummarySchema;
+export type NormalRequestSummary = RequestSummary;
 
-export const normalRequestDetailSchema = normalRequestSummarySchema.extend({
+export const requestDetailSchema = requestSummarySchema.extend({
   notes: z.string().nullable(),
-  items: z.array(normalRequestItemSchema).min(1),
-  approvals: z.array(normalRequestApprovalSchema),
-  fulfillment: normalRequestFulfillmentSchema.nullable(),
-  returnObligations: z.array(normalRequestReturnObligationSchema),
+  items: z.array(requestItemSchema).min(1),
+  approvals: z.array(requestApprovalSchema),
+  fulfillment: requestFulfillmentSchema.nullable(),
+  returnObligations: z.array(requestReturnObligationSchema),
 });
-export type NormalRequestDetail = z.infer<typeof normalRequestDetailSchema>;
+export type RequestDetail = z.infer<typeof requestDetailSchema>;
+export const normalRequestDetailSchema = requestDetailSchema;
+export type NormalRequestDetail = RequestDetail;
 
-export const normalRequestListResponseSchema = z.object({
-  items: z.array(normalRequestSummarySchema),
+export const requestListResponseSchema = z.object({ items: z.array(requestSummarySchema) });
+export type RequestListResponse = z.infer<typeof requestListResponseSchema>;
+export const normalRequestListResponseSchema = requestListResponseSchema;
+export type NormalRequestListResponse = RequestListResponse;
+
+export const requestDetailResponseSchema = z.object({ request: requestDetailSchema });
+export type RequestDetailResponse = z.infer<typeof requestDetailResponseSchema>;
+export const normalRequestDetailResponseSchema = requestDetailResponseSchema;
+export type NormalRequestDetailResponse = RequestDetailResponse;
+
+export const requestActionResponseSchema = requestDetailResponseSchema;
+export type RequestActionResponse = z.infer<typeof requestActionResponseSchema>;
+export const normalRequestActionResponseSchema = requestActionResponseSchema;
+export type NormalRequestActionResponse = RequestActionResponse;
+
+export const claimantCandidateSchema = z.object({
+  id: z.uuid(),
+  name: z.string().min(1),
+  avatarUrl: z.url().nullable(),
 });
-export type NormalRequestListResponse = z.infer<typeof normalRequestListResponseSchema>;
+export type ClaimantCandidate = z.infer<typeof claimantCandidateSchema>;
 
-export const normalRequestDetailResponseSchema = z.object({ request: normalRequestDetailSchema });
-export type NormalRequestDetailResponse = z.infer<typeof normalRequestDetailResponseSchema>;
-
-export const normalRequestActionResponseSchema = normalRequestDetailResponseSchema;
-export type NormalRequestActionResponse = z.infer<typeof normalRequestActionResponseSchema>;
+export const claimantCandidateListResponseSchema = z.object({
+  items: z.array(claimantCandidateSchema),
+});
+export type ClaimantCandidateListResponse = z.infer<typeof claimantCandidateListResponseSchema>;

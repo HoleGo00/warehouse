@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import type { NormalRequestDetail, NormalRequestDraft } from '@glorychips/contracts';
+import type {
+  CompleteTemporaryPaperwork,
+  NormalRequestDraft,
+  RequestDetail,
+} from '@glorychips/contracts';
 import { Ban, Pencil, RefreshCw } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { createCatalogApi } from '../catalog/catalog-api.js';
 import { createInventoryApi } from '../inventory/inventory-api.js';
 import NormalRequestForm from './NormalRequestForm.vue';
+import PaperworkRequestForm from './PaperworkRequestForm.vue';
 import { createIdempotencyKeyStore, createRequestApi } from './request-api.js';
 import {
   buildRequestVariantOptions,
-  requestStatusLabels,
-  requestTypeLabels,
+  requestOriginLabels,
+  requestStatusLabel,
+  requestTypeLabel,
   returnModeLabels,
   type RequestVariantOption,
 } from './request-view-model.js';
@@ -20,12 +29,13 @@ const api = createRequestApi();
 const catalogApi = createCatalogApi();
 const inventoryApi = createInventoryApi();
 const resubmitKeys = createIdempotencyKeyStore();
+const paperworkKeys = createIdempotencyKeyStore();
 const cancelKeys = createIdempotencyKeyStore();
 const requestId = computed<string | null>(() => {
   const value = route.params.requestId;
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(value) ? value : null;
 });
-const detail = shallowRef<NormalRequestDetail | null>(null);
+const detail = shallowRef<RequestDetail | null>(null);
 const options = shallowRef<readonly RequestVariantOption[]>([]);
 const loading = shallowRef(true);
 const acting = shallowRef(false);
@@ -36,7 +46,13 @@ const successMessage = shallowRef<string | null>(null);
 let latestLoad = 0;
 
 const initialDraft = computed<NormalRequestDraft | undefined>(() => {
-  if (detail.value === null) return undefined;
+  if (
+    detail.value === null ||
+    detail.value.type === null ||
+    detail.value.purposeObject === null ||
+    detail.value.finalDestination === null
+  )
+    return undefined;
   return {
     type: detail.value.type,
     purposeObject: detail.value.purposeObject,
@@ -134,18 +150,41 @@ const cancel = async (): Promise<void> => {
     acting.value = false;
   }
 };
+
+const completePaperwork = async (command: CompleteTemporaryPaperwork): Promise<void> => {
+  if (requestId.value === null) return;
+  const signature = { requestId: requestId.value, command };
+  acting.value = true;
+  errorMessage.value = null;
+  successMessage.value = null;
+  try {
+    detail.value = (
+      await api.completePaperwork(requestId.value, command, paperworkKeys.keyFor(signature))
+    ).request;
+    successMessage.value = '手续已提交审核';
+  } catch (error: unknown) {
+    errorMessage.value = error instanceof Error ? error.message : '手续提交失败';
+  } finally {
+    acting.value = false;
+  }
+};
 </script>
 
 <template>
   <section class="page" aria-labelledby="request-detail-title">
     <header class="page-header">
-      <div>
-        <p>申请详情</p>
-        <h1 id="request-detail-title">{{ detail?.requestNumber ?? '正常领用申请' }}</h1>
-      </div>
-      <button type="button" title="刷新" aria-label="刷新" :disabled="loading" @click="load">
+      <h1 id="request-detail-title">{{ detail?.requestNumber ?? '领用申请' }}</h1>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        title="刷新"
+        aria-label="刷新"
+        :disabled="loading"
+        @click="load"
+      >
         <RefreshCw :size="18" aria-hidden="true" />
-      </button>
+      </Button>
     </header>
 
     <div v-if="loading" class="state" role="status">正在读取申请详情</div>
@@ -155,8 +194,16 @@ const cancel = async (): Promise<void> => {
       <p v-if="errorMessage" class="message error" role="alert">{{ errorMessage }}</p>
       <p v-if="successMessage" class="message success" role="status">{{ successMessage }}</p>
 
+      <PaperworkRequestForm
+        v-if="detail.allowedActions.completePaperwork"
+        :key="detail.updatedAt"
+        :detail="detail"
+        :submitting="acting"
+        @submit="completePaperwork"
+      />
+
       <NormalRequestForm
-        v-if="editing && initialDraft"
+        v-else-if="editing && initialDraft"
         :key="detail.updatedAt"
         :warehouse="detail.warehouse"
         :options="options"
@@ -169,13 +216,16 @@ const cancel = async (): Promise<void> => {
       <template v-else>
         <section class="summary-band">
           <div>
-            <span>状态</span><strong>{{ requestStatusLabels[detail.status] }}</strong>
+            <span>状态</span><strong>{{ requestStatusLabel(detail.status, detail.origin) }}</strong>
+          </div>
+          <div>
+            <span>来源</span><strong>{{ requestOriginLabels[detail.origin] }}</strong>
           </div>
           <div>
             <span>仓库</span><strong>{{ detail.warehouseName }}</strong>
           </div>
           <div>
-            <span>类型</span><strong>{{ requestTypeLabels[detail.type] }}</strong>
+            <span>类型</span><strong>{{ requestTypeLabel(detail.type) }}</strong>
           </div>
           <div>
             <span>数量</span><strong>{{ detail.totalQuantity }} 件</strong>
@@ -187,11 +237,11 @@ const cancel = async (): Promise<void> => {
           <dl class="detail-grid">
             <div>
               <dt>用途 / 对象</dt>
-              <dd>{{ detail.purposeObject }}</dd>
+              <dd>{{ detail.purposeObject ?? '待补手续' }}</dd>
             </div>
             <div>
               <dt>最终去向</dt>
-              <dd>{{ detail.finalDestination }}</dd>
+              <dd>{{ detail.finalDestination ?? '待补手续' }}</dd>
             </div>
             <div>
               <dt>归还规则</dt>
@@ -204,6 +254,20 @@ const cancel = async (): Promise<void> => {
             <div class="wide">
               <dt>备注</dt>
               <dd>{{ detail.notes ?? '无' }}</dd>
+            </div>
+            <div>
+              <dt>领用人</dt>
+              <dd>{{ detail.claimantName }}</dd>
+            </div>
+            <div v-if="detail.fulfillment">
+              <dt>出库经办人</dt>
+              <dd>{{ detail.fulfillment.executorName }}</dd>
+            </div>
+            <div v-if="detail.paperworkDueAt">
+              <dt>手续截止</dt>
+              <dd :class="{ overdue: detail.paperworkOverdue }">
+                {{ new Date(detail.paperworkDueAt).toLocaleString('zh-CN') }}
+              </dd>
             </div>
           </dl>
         </section>
@@ -231,10 +295,16 @@ const cancel = async (): Promise<void> => {
         </section>
 
         <section v-if="detail.allowedActions.resubmit" class="action-band">
-          <button class="secondary-button" type="button" :disabled="acting" @click="beginEdit">
+          <Button
+            class="secondary-button"
+            type="button"
+            variant="outline"
+            :disabled="acting"
+            @click="beginEdit"
+          >
             <Pencil :size="17" aria-hidden="true" />
             修改并重新提交
-          </button>
+          </Button>
         </section>
 
         <section
@@ -246,18 +316,25 @@ const cancel = async (): Promise<void> => {
             <h2 id="cancel-title">取消申请</h2>
             <p>审核通过后取消会同时释放整批预占库存。</p>
           </div>
-          <label class="cancel-reason">
-            <span>取消原因</span>
-            <textarea v-model="cancelReason" rows="2" maxlength="1000" placeholder="填写取消原因" />
-          </label>
-          <button
+          <div class="cancel-reason">
+            <Label for="cancel-reason">取消原因</Label>
+            <Textarea
+              id="cancel-reason"
+              v-model="cancelReason"
+              rows="2"
+              maxlength="1000"
+              placeholder="填写取消原因"
+            />
+          </div>
+          <Button
             type="button"
+            variant="destructive"
             :disabled="acting || cancelReason.trim().length === 0"
             @click="cancel"
           >
             <Ban :size="17" aria-hidden="true" />
             {{ acting ? '处理中' : '确认取消' }}
-          </button>
+          </Button>
         </section>
       </template>
     </template>
@@ -287,7 +364,6 @@ const cancel = async (): Promise<void> => {
   border-bottom: 1px solid #d8ded9;
 }
 
-.page-header p,
 .page-header h1,
 .detail-section h2,
 .history-row p,
@@ -296,14 +372,7 @@ const cancel = async (): Promise<void> => {
   margin: 0;
 }
 
-.page-header p {
-  color: #9a542f;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
 .page-header h1 {
-  margin-top: 0.15rem;
   font-size: 1.35rem;
   overflow-wrap: anywhere;
 }
@@ -356,7 +425,7 @@ const cancel = async (): Promise<void> => {
 
 .summary-band {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
   margin-top: 1rem;
   background: #dbe1dc;
@@ -405,6 +474,11 @@ dt,
 dd {
   margin: 0.25rem 0 0;
   overflow-wrap: anywhere;
+}
+
+.overdue {
+  color: #a33f31;
+  font-weight: 800;
 }
 
 .item-list,

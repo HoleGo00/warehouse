@@ -33,8 +33,6 @@ export const useNormalRequestForm = (initial?: NormalRequestDraft) => {
     ...source,
     items: source.items.map((item) => ({ ...item })),
   });
-  const selectedVariantId = shallowRef('');
-  const selectedQuantity = shallowRef(1);
   const attempted = shallowRef(false);
   const today = todayInShanghai();
 
@@ -57,27 +55,6 @@ export const useNormalRequestForm = (initial?: NormalRequestDraft) => {
     },
   );
 
-  const addLine = (): void => {
-    if (selectedVariantId.value.length === 0 || selectedQuantity.value <= 0) return;
-    if (draft.items.some((item) => item.variantId === selectedVariantId.value)) return;
-    draft.items.push({
-      variantId: selectedVariantId.value,
-      quantity: selectedQuantity.value,
-    });
-    selectedVariantId.value = '';
-    selectedQuantity.value = 1;
-  };
-
-  const removeLine = (variantId: string): void => {
-    const index = draft.items.findIndex((item) => item.variantId === variantId);
-    if (index >= 0) draft.items.splice(index, 1);
-  };
-
-  const updateQuantity = (variantId: string, quantity: number): void => {
-    const item = draft.items.find((line) => line.variantId === variantId);
-    if (item !== undefined) item.quantity = quantity;
-  };
-
   const markAttempted = (): boolean => {
     attempted.value = true;
     return errors.value.length === 0;
@@ -92,15 +69,10 @@ export const useNormalRequestForm = (initial?: NormalRequestDraft) => {
 
   return {
     draft,
-    selectedVariantId,
-    selectedQuantity,
     attempted,
     errors,
     totalQuantity,
     today,
-    addLine,
-    removeLine,
-    updateQuantity,
     markAttempted,
     toCommand,
   };

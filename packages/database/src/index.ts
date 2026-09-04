@@ -14,3 +14,8 @@ export * from './inventory/stable-json.js';
 export type * from './inventory/types.js';
 export * from './requests/errors.js';
 export * from './requests/normal-request-service.js';
+export * from './requests/request-query-service.js';
+export * from './requests/request-review-service.js';
+export * from './requests/request-shared.js';
+export * from './requests/temporary-offline-request-service.js';
+export * from './requests/work-calendar-service.js';

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-09-04
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~99 | Active |
+| `journal-1.md` | ~122 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-09-04 | 完成临时领用与线下登记 | `e3712eb`, `b6a56fe` | `codex/warehouse-temporary-offline` |
 | 4 | 2026-09-04 | 完成正常领用审核与发放 | `4e15e6e`, `57ad0d8` | `codex/warehouse-normal-borrowing` |
 | 3 | 2026-09-04 | 商品库存查询与仓库二维码 | `84c8c4c`, `ed39d29` | `codex/warehouse-catalog-inventory-qr` |
 | 2 | 2026-08-31 | 完成飞书登录与仓库权限 | `4e83b5d`, `fb74e95` | `codex/warehouse-feishu-auth-rbac` |

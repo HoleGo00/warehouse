@@ -7,6 +7,9 @@ import {
   createDatabaseClient,
   InventoryQueryService,
   NormalRequestService,
+  RequestQueryService,
+  RequestReviewService,
+  TemporaryOfflineRequestService,
   WarehouseDirectoryService,
 } from '@glorychips/database';
 import { AccessController } from './access/access.controller.js';
@@ -24,6 +27,9 @@ import {
   FEISHU_IDENTITY_PROVIDER,
   INVENTORY_QUERY_SERVICE,
   NORMAL_REQUEST_SERVICE,
+  REQUEST_QUERY_SERVICE,
+  REQUEST_REVIEW_SERVICE,
+  TEMPORARY_OFFLINE_REQUEST_SERVICE,
   PRODUCT_IMAGE_CONTENT_PROVIDER,
   WAREHOUSE_DIRECTORY_SERVICE,
 } from './auth/tokens.js';
@@ -33,6 +39,7 @@ import { DatabaseLifecycle } from './database/database-lifecycle.js';
 import { HealthController } from './health/health.controller.js';
 import { InventoryController } from './inventory/inventory.controller.js';
 import { AdminRequestsController } from './requests/admin-requests.controller.js';
+import { AdminClaimantsController } from './requests/admin-claimants.controller.js';
 import { RequestsController } from './requests/requests.controller.js';
 import { WarehousesController } from './warehouses/warehouses.controller.js';
 
@@ -45,6 +52,7 @@ import { WarehousesController } from './warehouses/warehouses.controller.js';
     InventoryController,
     RequestsController,
     AdminRequestsController,
+    AdminClaimantsController,
     WarehousesController,
   ],
   providers: [
@@ -75,6 +83,27 @@ import { WarehousesController } from './warehouses/warehouses.controller.js';
       useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
         new NormalRequestService(database),
       inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: REQUEST_QUERY_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new RequestQueryService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: TEMPORARY_OFFLINE_REQUEST_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new TemporaryOfflineRequestService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: REQUEST_REVIEW_SERVICE,
+      useFactory: (
+        database: ReturnType<typeof createDatabaseClient>,
+        normalRequests: NormalRequestService,
+        temporaryRequests: TemporaryOfflineRequestService,
+      ) => new RequestReviewService(database, normalRequests, temporaryRequests),
+      inject: [DATABASE_CLIENT, NORMAL_REQUEST_SERVICE, TEMPORARY_OFFLINE_REQUEST_SERVICE],
     },
     {
       provide: WAREHOUSE_DIRECTORY_SERVICE,
