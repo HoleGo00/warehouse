@@ -74,3 +74,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 4: 完成正常领用审核与发放
+<!-- trellis-session: v=2 fp=77d28f1ca6507557 -->
+
+**Date**: 2026-09-04
+**Task**: 完成正常领用审核与发放
+**Branch**: `codex/warehouse-normal-borrowing`
+
+### Summary
+
+完成正常领用提交、整单审核预占、退回重提、申请人及管理员取消、整单发放和归还义务；补齐共享契约、原子库存事务、Nest API、Vue 员工与管理页面，并通过 73 项单元/HTTP 测试、21 项 PostgreSQL 集成测试及双视口浏览器验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4e15e6e` | feat: 实现正常领用审核与发放 |
+| `57ad0d8` | docs: 补全正常领用任务与规格 |
+
+### Status
+
+[OK] **Completed**
