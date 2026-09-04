@@ -4,6 +4,7 @@ export * from './catalog.js';
 export * from './enums.js';
 export * from './health.js';
 export * from './inventory.js';
+export * from './inventory-operations.js';
 export * from './inventory-query.js';
 export * from './requests.js';
 export * from './warehouses.js';

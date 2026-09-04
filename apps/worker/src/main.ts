@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { parseWorkerEnvironment } from '@glorychips/config';
 import { createDatabaseClient } from '@glorychips/database';
 import { AppModule } from './app.module.js';
+import { ReturnReminderRunner } from './return-reminder.runner.js';
 
 const checkDatabase = async (): Promise<void> => {
   const database = createDatabaseClient();
@@ -17,14 +18,21 @@ const checkDatabase = async (): Promise<void> => {
 };
 
 const bootstrap = async (): Promise<void> => {
-  await NestFactory.createApplicationContext(AppModule);
   const environment = parseWorkerEnvironment(process.env);
   await checkDatabase();
-  if (!environment.WORKER_RUN_ONCE) {
-    setInterval(() => {
-      void checkDatabase().catch((error: unknown) => console.error(error));
-    }, environment.WORKER_POLL_INTERVAL_MS).unref();
+  const application = await NestFactory.createApplicationContext(AppModule);
+  application.enableShutdownHooks();
+  const runner = application.get(ReturnReminderRunner);
+  if (environment.WORKER_RUN_ONCE) {
+    try {
+      await runner.runOnce();
+    } finally {
+      await application.close();
+    }
+    return;
   }
+  await runner.runOnceSafely();
+  runner.start(environment.WORKER_POLL_INTERVAL_MS);
 };
 
 bootstrap().catch((error: unknown) => {

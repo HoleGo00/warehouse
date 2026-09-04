@@ -85,6 +85,7 @@ const detail = {
     review: false,
     fulfill: false,
     adminCancel: false,
+    confirmReturn: false,
   },
   items: [
     {

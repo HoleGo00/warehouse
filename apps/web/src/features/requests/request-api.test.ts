@@ -35,6 +35,7 @@ const responseBody = {
       review: false,
       fulfill: false,
       adminCancel: false,
+      confirmReturn: false,
     },
     items: [
       {

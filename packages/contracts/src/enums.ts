@@ -89,6 +89,27 @@ export const inventoryMovementTypes = [
 export const inventoryMovementTypeSchema = z.enum(inventoryMovementTypes);
 export type InventoryMovementType = z.infer<typeof inventoryMovementTypeSchema>;
 
+export const inventoryMovementSources = [
+  'ONLINE_REQUEST',
+  'EXPRESS_REQUEST',
+  'OFFLINE_REQUEST',
+  'ADMIN_INBOUND',
+  'ADMIN_RETURN',
+  'ADMIN_TRANSFER',
+  'ADMIN_STOCKTAKE',
+  'MIGRATION',
+] as const;
+export const inventoryMovementSourceSchema = z.enum(inventoryMovementSources);
+export type InventoryMovementSource = z.infer<typeof inventoryMovementSourceSchema>;
+
+export const inventoryOperationTypes = ['INBOUND', 'TRANSFER', 'STOCKTAKE'] as const;
+export const inventoryOperationTypeSchema = z.enum(inventoryOperationTypes);
+export type InventoryOperationType = z.infer<typeof inventoryOperationTypeSchema>;
+
+export const inventoryInboundTypes = ['PURCHASE', 'OTHER'] as const;
+export const inventoryInboundTypeSchema = z.enum(inventoryInboundTypes);
+export type InventoryInboundType = z.infer<typeof inventoryInboundTypeSchema>;
+
 export const reconciliationStatuses = ['MATCHED', 'MISMATCH', 'RESOLVED'] as const;
 export const reconciliationStatusSchema = z.enum(reconciliationStatuses);
 export type ReconciliationStatus = z.infer<typeof reconciliationStatusSchema>;

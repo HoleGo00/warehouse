@@ -195,6 +195,7 @@ export const requestAllowedActionsSchema = z.object({
   review: z.boolean(),
   fulfill: z.boolean(),
   adminCancel: z.boolean(),
+  confirmReturn: z.boolean(),
 });
 export type RequestAllowedActions = z.infer<typeof requestAllowedActionsSchema>;
 export const normalRequestAllowedActionsSchema = requestAllowedActionsSchema;
@@ -244,7 +245,19 @@ export const requestReturnObligationSchema = z.object({
   dueDate: dateOnlySchema.nullable(),
   requiredQuantity: z.number().int().positive(),
   returnedQuantity: z.number().int().nonnegative(),
+  remainingQuantity: z.number().int().nonnegative(),
   status: returnStatusSchema,
+  returns: z.array(
+    z.object({
+      id: z.uuid(),
+      warehouse: warehouseCodeSchema,
+      warehouseName: z.string().min(1),
+      quantity: z.number().int().positive(),
+      processorId: z.uuid(),
+      processorName: z.string().min(1),
+      returnedAt: z.iso.datetime(),
+    }),
+  ),
 });
 export type RequestReturnObligation = z.infer<typeof requestReturnObligationSchema>;
 export const normalRequestReturnObligationSchema = requestReturnObligationSchema;

@@ -282,6 +282,34 @@ const completePaperwork = async (command: CompleteTemporaryPaperwork): Promise<v
           </div>
         </section>
 
+        <section v-if="detail.returnObligations.length > 0" class="detail-section">
+          <h2>归还进度</h2>
+          <div class="history-list">
+            <div
+              v-for="obligation in detail.returnObligations"
+              :key="obligation.id"
+              class="history-row"
+            >
+              <strong>{{
+                detail.items.find((item) => item.variantId === obligation.variantId)?.variantName ??
+                obligation.variantId
+              }}</strong>
+              <span
+                >应还 {{ obligation.requiredQuantity }} · 已还 {{ obligation.returnedQuantity }} ·
+                剩余 {{ obligation.remainingQuantity }}</span
+              >
+              <p>{{ obligation.dueDate ?? '员工离职时归还' }}</p>
+              <div v-for="record in obligation.returns" :key="record.id" class="return-record">
+                <span>{{ record.warehouseName }} · {{ record.quantity }} 件</span>
+                <span
+                  >{{ record.processorName }} ·
+                  {{ new Date(record.returnedAt).toLocaleString('zh-CN') }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section v-if="detail.approvals.length > 0" class="detail-section">
           <h2>审核记录</h2>
           <div class="history-list">
@@ -510,6 +538,17 @@ dd {
 .history-row p {
   width: 100%;
   color: #4d5952;
+}
+
+.return-record {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e4e8e5;
+  color: #68746e;
+  font-size: 0.78rem;
 }
 
 .action-band {

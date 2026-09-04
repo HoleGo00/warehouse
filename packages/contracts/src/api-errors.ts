@@ -22,6 +22,14 @@ export const requestErrorCodes = [
   'INVALID_INVENTORY_COMMAND',
   'RESERVATION_STATE_CONFLICT',
   'CLAIMANT_NOT_FOUND',
+  'INVENTORY_OPERATION_NOT_FOUND',
+  'INVENTORY_OPERATION_CONFLICT',
+  'RETURN_OBLIGATION_NOT_FOUND',
+  'RETURN_QUANTITY_EXCEEDED',
+  'RETURN_STATE_CONFLICT',
+  'STOCKTAKE_RESERVATION_CONFLICT',
+  'ADMIN_TASK_NOT_FOUND',
+  'WORK_CALENDAR_CONFLICT',
 ] as const;
 export const requestErrorCodeSchema = z.enum(requestErrorCodes);
 export type RequestErrorCode = z.infer<typeof requestErrorCodeSchema>;

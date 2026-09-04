@@ -1,4 +1,8 @@
-import type { InventoryAvailability, InventoryMovementType } from '@glorychips/contracts';
+import type {
+  InventoryAvailability,
+  InventoryMovementSource,
+  InventoryMovementType,
+} from '@glorychips/contracts';
 
 export interface InventoryLineInput {
   readonly warehouseId: string;
@@ -39,11 +43,13 @@ export interface MovementLineInput {
 
 export interface ApplyMovementBatchCommand {
   readonly businessNumber: string;
-  readonly source: 'ONLINE' | 'OFFLINE' | 'EXPRESS';
+  readonly source: InventoryMovementSource;
   readonly lines: readonly MovementLineInput[];
   readonly requestId?: string;
+  readonly operationId?: string;
   readonly consumeReservationBatchId?: string;
   readonly actorUserId?: string;
+  readonly occurredAt?: Date;
 }
 
 export interface MovementBatchResult {
@@ -59,11 +65,14 @@ export interface TransferLineInput {
 
 export interface TransferBatchCommand {
   readonly businessNumber: string;
-  readonly source: 'ONLINE' | 'OFFLINE' | 'EXPRESS';
+  readonly source: InventoryMovementSource;
   readonly fromWarehouseId: string;
   readonly toWarehouseId: string;
   readonly lines: readonly TransferLineInput[];
   readonly actorUserId?: string;
+  readonly operationId?: string;
+  readonly transferId?: string;
+  readonly occurredAt?: Date;
 }
 
 export interface TransferBatchResult extends MovementBatchResult {

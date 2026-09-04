@@ -52,6 +52,14 @@ describe('shared contracts', () => {
     );
     expect(normalizeAuthReturnPath('/admin/catalog')).toBe('/admin/catalog');
     expect(normalizeAuthReturnPath('/admin/requests/offline')).toBe('/admin/requests/offline');
+    expect(normalizeAuthReturnPath('/admin/inventory/inbound')).toBe('/admin/inventory/inbound');
+    expect(normalizeAuthReturnPath('/admin/inventory/transfer')).toBe('/admin/inventory/transfer');
+    expect(normalizeAuthReturnPath('/admin/inventory/stocktake')).toBe(
+      '/admin/inventory/stocktake',
+    );
+    expect(normalizeAuthReturnPath('/admin/returns')).toBe('/admin/returns');
+    expect(normalizeAuthReturnPath('/admin/tasks')).toBe('/admin/tasks');
+    expect(normalizeAuthReturnPath('/admin/work-calendar')).toBe('/admin/work-calendar');
     expect(normalizeAuthReturnPath('/w/YUHANG/apply/temporary')).toBe('/w/YUHANG/apply/temporary');
     expect(normalizeAuthReturnPath('/w/UNKNOWN/apply')).toBe('/');
     expect(normalizeAuthReturnPath('//evil.example/path')).toBe('/');

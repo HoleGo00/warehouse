@@ -368,7 +368,7 @@ export class NormalRequestService {
           transaction,
           {
             businessNumber: current.requestNumber,
-            source: 'ONLINE',
+            source: 'ONLINE_REQUEST',
             requestId,
             consumeReservationBatchId: batches[0],
             actorUserId: principal.userId,
