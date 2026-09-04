@@ -1,12 +1,12 @@
 import { Catch, HttpException } from '@nestjs/common';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { authErrorResponseSchema } from '@glorychips/contracts';
-import type { AuthErrorCode } from '@glorychips/contracts';
-import { AuthDomainError } from '@glorychips/database';
+import { apiErrorResponseSchema } from '@glorychips/contracts';
+import type { ApiErrorCode } from '@glorychips/contracts';
+import { AuthDomainError, CatalogDomainError } from '@glorychips/database';
 import type { ApiResponse } from './http-types.js';
 
-const statusByCode: Readonly<Partial<Record<AuthErrorCode, number>>> = {
+const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
   AUTH_REQUIRED: 401,
   AUTH_STATE_INVALID: 400,
   AUTH_IDENTITY_CONFLICT: 409,
@@ -20,6 +20,12 @@ const statusByCode: Readonly<Partial<Record<AuthErrorCode, number>>> = {
   INVALID_ACCESS_PROFILE: 400,
   LAST_SYSTEM_ADMIN: 409,
   VALIDATION_ERROR: 400,
+  CATALOG_CONFLICT: 409,
+  CATALOG_NOT_FOUND: 404,
+  PRODUCT_IMAGE_REQUIRED: 409,
+  CATALOG_CATEGORY_LOCKED: 409,
+  IMAGE_UNAVAILABLE: 503,
+  PUBLIC_URL_NOT_READY: 503,
 };
 
 @Catch()
@@ -27,10 +33,10 @@ export class ApiExceptionFilter implements ExceptionFilter {
   public catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<ApiResponse>();
     const traceId = randomUUID();
-    if (exception instanceof AuthDomainError) {
-      console.info(JSON.stringify({ event: 'auth_failure', code: exception.code, traceId }));
+    if (exception instanceof AuthDomainError || exception instanceof CatalogDomainError) {
+      console.info(JSON.stringify({ event: 'api_rejection', code: exception.code, traceId }));
       response.status(statusByCode[exception.code] ?? 400).json(
-        authErrorResponseSchema.parse({
+        apiErrorResponseSchema.parse({
           code: exception.code,
           message: exception.message,
           traceId,
@@ -39,18 +45,22 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return;
     }
     if (exception instanceof HttpException) {
-      response.status(exception.getStatus()).json({
-        code: 'VALIDATION_ERROR',
-        message: 'The request could not be processed.',
-        traceId,
-      });
+      response.status(exception.getStatus()).json(
+        apiErrorResponseSchema.parse({
+          code: 'VALIDATION_ERROR',
+          message: 'The request could not be processed.',
+          traceId,
+        }),
+      );
       return;
     }
     console.error(JSON.stringify({ event: 'api_failure', traceId }));
-    response.status(500).json({
-      code: 'AUTH_UPSTREAM_UNAVAILABLE',
-      message: 'The request could not be processed.',
-      traceId,
-    });
+    response.status(500).json(
+      apiErrorResponseSchema.parse({
+        code: 'AUTH_UPSTREAM_UNAVAILABLE',
+        message: 'The request could not be processed.',
+        traceId,
+      }),
+    );
   }
 }

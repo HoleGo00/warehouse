@@ -15,3 +15,8 @@ body {
   min-height: 100vh;
   background: #f1f3f0;
 }
+
+:where(a, button, input, select):focus-visible {
+  outline: 3px solid #d9a441;
+  outline-offset: 2px;
+}

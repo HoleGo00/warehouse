@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Backend feature placement and thin controller boundaries"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Prisma query and inventory balance integrity rules"}
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Session and system-admin guard contracts"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue component and accessibility conventions"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Shared Zod contract ownership"}

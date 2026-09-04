@@ -1,7 +1,13 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { parseApiEnvironment } from '@glorychips/config';
-import { AuthService, createDatabaseClient } from '@glorychips/database';
+import {
+  AuthService,
+  CatalogService,
+  createDatabaseClient,
+  InventoryQueryService,
+  WarehouseDirectoryService,
+} from '@glorychips/database';
 import { AccessController } from './access/access.controller.js';
 import { SystemAdminGuard } from './access/system-admin.guard.js';
 import { ApiExceptionFilter } from './auth/api-exception.filter.js';
@@ -12,14 +18,29 @@ import { SessionGuard } from './auth/session.guard.js';
 import {
   API_ENVIRONMENT,
   AUTH_SERVICE,
+  CATALOG_SERVICE,
   DATABASE_CLIENT,
   FEISHU_IDENTITY_PROVIDER,
+  INVENTORY_QUERY_SERVICE,
+  PRODUCT_IMAGE_CONTENT_PROVIDER,
+  WAREHOUSE_DIRECTORY_SERVICE,
 } from './auth/tokens.js';
+import { CatalogController } from './catalog/catalog.controller.js';
+import { UnavailableProductImageContentProvider } from './catalog/product-image.provider.js';
 import { DatabaseLifecycle } from './database/database-lifecycle.js';
 import { HealthController } from './health/health.controller.js';
+import { InventoryController } from './inventory/inventory.controller.js';
+import { WarehousesController } from './warehouses/warehouses.controller.js';
 
 @Module({
-  controllers: [HealthController, AuthController, AccessController],
+  controllers: [
+    HealthController,
+    AuthController,
+    AccessController,
+    CatalogController,
+    InventoryController,
+    WarehousesController,
+  ],
   providers: [
     { provide: API_ENVIRONMENT, useFactory: () => parseApiEnvironment(process.env) },
     {
@@ -29,6 +50,24 @@ import { HealthController } from './health/health.controller.js';
     {
       provide: AUTH_SERVICE,
       useFactory: (database: ReturnType<typeof createDatabaseClient>) => new AuthService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: CATALOG_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new CatalogService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: INVENTORY_QUERY_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new InventoryQueryService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: WAREHOUSE_DIRECTORY_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new WarehouseDirectoryService(database),
       inject: [DATABASE_CLIENT],
     },
     {
@@ -45,6 +84,10 @@ import { HealthController } from './health/health.controller.js';
     SessionGuard,
     SystemAdminGuard,
     DatabaseLifecycle,
+    {
+      provide: PRODUCT_IMAGE_CONTENT_PROVIDER,
+      useClass: UnavailableProductImageContentProvider,
+    },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
   ],
 })

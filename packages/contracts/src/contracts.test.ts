@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  apiErrorResponseSchema,
   calculateAvailability,
+  createCatalogProductRequestSchema,
   feishuAppIdSchema,
+  inventoryQueryResponseSchema,
+  inventoryQuerySchema,
   isFeishuAppId,
   normalizeAuthReturnPath,
   productCatalog,
@@ -43,9 +47,75 @@ describe('shared contracts', () => {
 
   it('normalizes only known internal authentication return paths', () => {
     expect(normalizeAuthReturnPath('/w/XIHU/apply?source=qr')).toBe('/w/XIHU/apply?source=qr');
+    expect(normalizeAuthReturnPath('/inventory?warehouse=YUHANG')).toBe(
+      '/inventory?warehouse=YUHANG',
+    );
+    expect(normalizeAuthReturnPath('/admin/catalog')).toBe('/admin/catalog');
     expect(normalizeAuthReturnPath('/w/UNKNOWN/apply')).toBe('/');
     expect(normalizeAuthReturnPath('//evil.example/path')).toBe('/');
     expect(normalizeAuthReturnPath('https://evil.example/path')).toBe('/');
+  });
+
+  it('validates catalog mutations and inventory filters at the shared boundary', () => {
+    expect(
+      createCatalogProductRequestSchema.parse({
+        code: 'WATCH_NEW_SERIES',
+        name: '新款腕表',
+        category: 'SMART_WATCH',
+      }),
+    ).toMatchObject({ status: 'INACTIVE' });
+    expect(
+      createCatalogProductRequestSchema.safeParse({ code: 'watch-new', name: 'x' }).success,
+    ).toBe(false);
+    expect(inventoryQuerySchema.parse({})).toEqual({ warehouse: 'ALL' });
+    expect(inventoryQuerySchema.safeParse({ warehouse: 'UNKNOWN' }).success).toBe(false);
+  });
+
+  it('decodes inventory projections and shared API errors', () => {
+    const quantity = {
+      confirmedFeishuQuantity: 5,
+      pendingMovementDelta: -1,
+      effectiveOnHandQuantity: 4,
+      reservedQuantity: 2,
+      availableQuantity: 2,
+      syncIndicator: 'PENDING_LOCAL_CHANGES',
+    } as const;
+    expect(
+      inventoryQueryResponseSchema.parse({
+        warehouse: 'ALL',
+        category: 'SMART_WATCH',
+        warehouses: [{ code: 'YUHANG', name: '余杭仓' }],
+        products: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            code: 'WATCH_HEALTH',
+            name: '健康腕表',
+            category: 'SMART_WATCH',
+            status: 'ACTIVE',
+            imageReady: false,
+            mainImage: null,
+            variants: [
+              {
+                id: '22222222-2222-4222-8222-222222222222',
+                code: 'DEFAULT',
+                displayName: '健康腕表',
+                size: null,
+                isActive: true,
+                warehouses: [{ warehouse: 'YUHANG', ...quantity }],
+                total: quantity,
+              },
+            ],
+          },
+        ],
+      }).products[0]?.variants[0]?.total.availableQuantity,
+    ).toBe(2);
+    expect(
+      apiErrorResponseSchema.parse({
+        code: 'IMAGE_UNAVAILABLE',
+        message: 'Image is unavailable.',
+        traceId: '33333333-3333-4333-8333-333333333333',
+      }).code,
+    ).toBe('IMAGE_UNAVAILABLE');
   });
 
   it('rejects invalid warehouse administrator access profiles', () => {

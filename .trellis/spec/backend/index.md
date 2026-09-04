@@ -20,6 +20,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
 | [Authentication and Authorization](./authentication-guidelines.md) | Feishu login, sessions, bootstrap and warehouse RBAC | Active |
+| [Catalog and Inventory Query](./catalog-inventory-query.md) | Catalog management, image proxy, inventory projection and warehouse QR contracts | Active |
 
 ---
 

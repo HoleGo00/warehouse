@@ -1,5 +1,11 @@
+import { z } from 'zod';
 import {
   ringSizes,
+  baseTargetSchema,
+  imageKindSchema,
+  productCategoryCodeSchema,
+  productStatusSchema,
+  specificationModeSchema,
   type BaseTarget,
   type ProductCategoryCode,
   type ProductStatus,
@@ -146,3 +152,70 @@ export const productCatalog: readonly CatalogProduct[] = [
 ] as const;
 
 export const catalogRingSizes = ringSizes;
+
+export const productCodeSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(80)
+  .regex(/^[A-Z0-9_]+$/, 'Product code must contain only A-Z, 0-9 and underscore.');
+
+export const catalogImageSchema = z.object({
+  id: z.uuid(),
+  kind: imageKindSchema,
+  sortOrder: z.number().int().nonnegative(),
+  fileName: z.string().min(1).nullable(),
+  url: z.string().regex(/^\/catalog\/images\/[0-9a-f-]{36}$/i),
+});
+export type CatalogImage = z.infer<typeof catalogImageSchema>;
+
+export const catalogVariantSchema = z.object({
+  id: z.uuid(),
+  code: z.string().min(1),
+  displayName: z.string().min(1),
+  size: z.string().min(1).nullable(),
+  isActive: z.boolean(),
+});
+export type CatalogVariant = z.infer<typeof catalogVariantSchema>;
+
+export const catalogProductSchema = z.object({
+  id: z.uuid(),
+  code: productCodeSchema,
+  name: z.string().trim().min(1).max(160),
+  category: productCategoryCodeSchema,
+  specificationMode: specificationModeSchema,
+  status: productStatusSchema,
+  baseTarget: baseTargetSchema,
+  imageReady: z.boolean(),
+  mainImage: catalogImageSchema.nullable(),
+  detailImages: z.array(catalogImageSchema),
+  variants: z.array(catalogVariantSchema),
+});
+export type CatalogProductResponse = z.infer<typeof catalogProductSchema>;
+
+export const catalogListResponseSchema = z.object({
+  items: z.array(catalogProductSchema),
+});
+export type CatalogListResponse = z.infer<typeof catalogListResponseSchema>;
+
+export const createCatalogProductRequestSchema = z.object({
+  code: productCodeSchema,
+  name: z.string().trim().min(1).max(160),
+  category: productCategoryCodeSchema,
+  status: productStatusSchema.default('INACTIVE'),
+});
+export type CreateCatalogProductRequest = z.infer<typeof createCatalogProductRequestSchema>;
+
+export const updateCatalogProductRequestSchema = z
+  .object({
+    name: z.string().trim().min(1).max(160).optional(),
+    category: productCategoryCodeSchema.optional(),
+    status: productStatusSchema.optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'At least one product field is required.');
+export type UpdateCatalogProductRequest = z.infer<typeof updateCatalogProductRequestSchema>;
+
+export const catalogProductResponseSchema = z.object({
+  product: catalogProductSchema,
+});
+export type CatalogProductMutationResponse = z.infer<typeof catalogProductResponseSchema>;

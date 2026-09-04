@@ -3,6 +3,12 @@ import { feishuAppIdSchema } from '@glorychips/contracts';
 
 const nodeEnvironmentSchema = z.enum(['development', 'test', 'production']).default('development');
 
+const isLoopbackHostname = (hostname: string): boolean =>
+  hostname === 'localhost' ||
+  hostname === '0.0.0.0' ||
+  hostname === '[::1]' ||
+  /^127(?:\.\d{1,3}){3}$/.test(hostname);
+
 export const databaseEnvironmentSchema = z.object({
   DATABASE_URL: z.url().startsWith('postgresql://'),
 });
@@ -29,6 +35,7 @@ export const apiEnvironmentSchema = databaseEnvironmentSchema
     AUTH_STATE_TTL_SECONDS: z.coerce.number().int().min(60).max(1_800).default(600),
   })
   .superRefine((value, context) => {
+    const publicUrl = new URL(value.WEB_PUBLIC_URL);
     if (value.SESSION_COOKIE_NAME === value.OAUTH_BINDING_COOKIE_NAME) {
       context.addIssue({
         code: 'custom',
@@ -36,9 +43,34 @@ export const apiEnvironmentSchema = databaseEnvironmentSchema
         path: ['OAUTH_BINDING_COOKIE_NAME'],
       });
     }
+    if (
+      !['http:', 'https:'].includes(publicUrl.protocol) ||
+      publicUrl.username !== '' ||
+      publicUrl.password !== '' ||
+      publicUrl.pathname !== '/' ||
+      publicUrl.search !== '' ||
+      publicUrl.hash !== ''
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'WEB_PUBLIC_URL must be a clean HTTP(S) origin without credentials or parameters.',
+        path: ['WEB_PUBLIC_URL'],
+      });
+    }
+    if (
+      value.NODE_ENV === 'production' &&
+      (publicUrl.protocol !== 'https:' || isLoopbackHostname(publicUrl.hostname))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'WEB_PUBLIC_URL must use a non-loopback HTTPS origin in production.',
+        path: ['WEB_PUBLIC_URL'],
+      });
+    }
   })
   .transform((value) => ({
     ...value,
+    WEB_PUBLIC_URL: new URL(value.WEB_PUBLIC_URL).origin,
     SESSION_COOKIE_SECURE: value.NODE_ENV === 'production',
   }));
 
