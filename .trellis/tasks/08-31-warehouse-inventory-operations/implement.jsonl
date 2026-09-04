@@ -1,0 +1,14 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Backend API, worker and domain service ownership"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Prisma migration, transaction locking, movement, outbox and audit integrity"}
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Session roles and exact warehouse authorization"}
+{"file": ".trellis/spec/backend/temporary-offline-request-workflow.md", "reason": "Existing return obligations, work calendar and admin task behavior"}
+{"file": ".trellis/spec/backend/inventory-operations-workflow.md", "reason": "Inventory operations, return, task, worker and calendar implementation contract"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Vue component and accessibility conventions"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "shadcn-vue and visual constraints"}
+{"file": ".trellis/spec/frontend/temporary-offline-request-ui.md", "reason": "Existing request detail, admin queues and responsive behavior"}
+{"file": ".trellis/spec/frontend/inventory-operations-ui.md", "reason": "Inventory operations route, form, return, task and calendar UI contract"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Shared Zod contracts and strict typing"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "Epic inventory operations, return, reminder and authorization requirements"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/design.md", "reason": "Epic data model, concurrency, worker, calendar and UI boundaries"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/return-policy.md", "reason": "Confirmed return modes, due and departure triggers"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/warehouse-and-qr-model.md", "reason": "Confirmed transfer authorization and conservation rules"}

@@ -24,6 +24,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Inventory and Catalog UI](./inventory-catalog-ui.md)                 | Authenticated inventory, warehouse entry and catalog administration behavior | Active  |
 | [Normal Request UI](./normal-request-ui.md)                           | Locked-warehouse claimant forms, request detail and administrator queues     | Active  |
 | [Temporary and Offline Request UI](./temporary-offline-request-ui.md) | Immediate temporary issue, paperwork queues and offline registration         | Active  |
+| [Inventory Operations UI](./inventory-operations-ui.md)               | Inbound, transfer, stocktake, return, task and work-calendar behavior         | Active  |
 
 ---
 

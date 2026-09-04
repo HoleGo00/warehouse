@@ -23,6 +23,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Catalog and Inventory Query](./catalog-inventory-query.md)                       | Catalog management, image proxy, inventory projection and warehouse QR contracts | Active  |
 | [Normal Request Workflow](./normal-request-workflow.md)                           | Online normal borrowing state machine, atomic inventory actions and idempotency  | Active  |
 | [Temporary and Offline Request Workflow](./temporary-offline-request-workflow.md) | Immediate issue, paperwork, work-calendar deadlines and offline registration     | Active  |
+| [Inventory Operations Workflow](./inventory-operations-workflow.md)               | Inbound, transfer, stocktake, returns, tasks, worker and calendar contracts       | Active  |
 
 ---
 
