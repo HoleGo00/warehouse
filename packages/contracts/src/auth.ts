@@ -140,6 +140,8 @@ const knownReturnPathSchema = z.string().refine((value) => {
       url.origin === 'https://warehouse.invalid' &&
       (url.pathname === '/' ||
         url.pathname === '/admin/access' ||
+        url.pathname === '/admin/catalog' ||
+        url.pathname === '/inventory' ||
         /^\/w\/(XIHU|YUHANG)\/apply$/.test(url.pathname))
     );
   } catch {

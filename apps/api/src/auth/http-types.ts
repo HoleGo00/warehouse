@@ -7,6 +7,7 @@ export interface ApiRequest {
 
 export interface ApiResponse {
   redirect(status: number, url: string): void;
+  send(body: unknown): void;
   setHeader(name: string, value: string | readonly string[]): void;
   status(status: number): ApiResponse;
   json(body: unknown): void;

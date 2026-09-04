@@ -23,6 +23,10 @@ describe('environment parsing', () => {
     expect(() =>
       parseApiEnvironment({ ...apiEnvironment, DATABASE_URL: 'https://example.com' }),
     ).toThrow();
+    expect(
+      parseApiEnvironment({ ...apiEnvironment, WEB_PUBLIC_URL: 'http://localhost:5173/' })
+        .WEB_PUBLIC_URL,
+    ).toBe('http://localhost:5173');
   });
 
   it('requires Feishu credentials and enables secure cookies in production', () => {
@@ -30,8 +34,26 @@ describe('environment parsing', () => {
       parseApiEnvironment({ ...apiEnvironment, FEISHU_APP_SECRET: undefined }),
     ).toThrow();
     expect(
-      parseApiEnvironment({ ...apiEnvironment, NODE_ENV: 'production' }).SESSION_COOKIE_SECURE,
+      parseApiEnvironment({
+        ...apiEnvironment,
+        NODE_ENV: 'production',
+        WEB_PUBLIC_URL: 'https://warehouse.example.com',
+      }).SESSION_COOKIE_SECURE,
     ).toBe(true);
+    expect(() => parseApiEnvironment({ ...apiEnvironment, NODE_ENV: 'production' })).toThrow();
+    expect(() =>
+      parseApiEnvironment({
+        ...apiEnvironment,
+        NODE_ENV: 'production',
+        WEB_PUBLIC_URL: 'https://localhost:5173',
+      }),
+    ).toThrow();
+    expect(() =>
+      parseApiEnvironment({
+        ...apiEnvironment,
+        WEB_PUBLIC_URL: 'https://user:password@warehouse.example.com/?token=secret',
+      }),
+    ).toThrow();
     expect(() =>
       parseApiEnvironment({ ...apiEnvironment, FEISHU_APP_ID: 'cli_local_visual_check' }),
     ).toThrow();

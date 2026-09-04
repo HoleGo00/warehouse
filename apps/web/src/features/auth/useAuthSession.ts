@@ -94,7 +94,7 @@ export const useAuthSession = () => {
 
   return {
     status: readonly(status),
-    session: readonly(session),
+    session: computed(() => session.value),
     errorMessage: readonly(errorMessage),
     clientLoginAvailable: readonly(clientLoginAvailable),
     isSystemAdministrator,

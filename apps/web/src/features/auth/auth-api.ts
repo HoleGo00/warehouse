@@ -1,12 +1,12 @@
 import {
-  authErrorResponseSchema,
+  apiErrorResponseSchema,
   authMeResponseSchema,
   clientLoginChallengeResponseSchema,
   clientLoginResponseSchema,
   normalizeAuthReturnPath,
 } from '@glorychips/contracts';
 import type {
-  AuthErrorCode,
+  ApiErrorCode,
   AuthMeResponse,
   ClientLoginChallengeResponse,
   ClientLoginResponse,
@@ -16,7 +16,7 @@ type FetchFunction = (input: string | URL, init?: RequestInit) => Promise<Respon
 
 export class AuthApiError extends Error {
   public constructor(
-    public readonly code: AuthErrorCode,
+    public readonly code: ApiErrorCode,
     message: string,
   ) {
     super(message);
@@ -32,7 +32,7 @@ interface CreateAuthApiOptions {
 const parseResponse = async <T>(response: Response, parse: (value: unknown) => T): Promise<T> => {
   const payload: unknown = await response.json();
   if (!response.ok) {
-    const error = authErrorResponseSchema.safeParse(payload);
+    const error = apiErrorResponseSchema.safeParse(payload);
     if (error.success) throw new AuthApiError(error.data.code, error.data.message);
     throw new AuthApiError('AUTH_UPSTREAM_UNAVAILABLE', '服务暂时不可用');
   }
