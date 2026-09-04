@@ -120,3 +120,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: 完成归还、调拨、盘点与提醒
+<!-- trellis-session: v=2 fp=37618f22785e86bd -->
+
+**Date**: 2026-09-04
+**Task**: 完成归还、调拨、盘点与提醒
+**Branch**: `codex/warehouse-inventory-operations`
+
+### Summary
+
+实现采购和其他入库、分批实物归还、双仓原子调拨、盘点、工作日历、管理员任务中心与提醒扫描；完成独立检查、全量自动化测试及双视口浏览器验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e51401a` | feat: 实现库存操作与提醒 |
+| `3f4f392` | docs: 补全库存操作任务与规格 |
+
+### Status
+
+[OK] **Completed**

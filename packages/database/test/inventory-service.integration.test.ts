@@ -48,7 +48,7 @@ describe.skipIf(!integrationEnabled)('InventoryService PostgreSQL integration', 
       inventory.applyMovementBatch(
         {
           businessNumber: `IT-ISSUE-A-${Date.now()}`,
-          source: 'ONLINE',
+          source: 'ONLINE_REQUEST',
           lines: [{ warehouseId, variantId, quantityDelta: -7, type: 'ISSUE' }],
         },
         `it-issue-a-${Date.now()}`,
@@ -56,7 +56,7 @@ describe.skipIf(!integrationEnabled)('InventoryService PostgreSQL integration', 
       inventory.applyMovementBatch(
         {
           businessNumber: `IT-ISSUE-B-${Date.now()}`,
-          source: 'ONLINE',
+          source: 'ONLINE_REQUEST',
           lines: [{ warehouseId, variantId, quantityDelta: -7, type: 'ISSUE' }],
         },
         `it-issue-b-${Date.now()}`,
@@ -90,7 +90,7 @@ describe.skipIf(!integrationEnabled)('InventoryService PostgreSQL integration', 
       inventory.applyMovementBatch(
         {
           businessNumber,
-          source: 'ONLINE',
+          source: 'ONLINE_REQUEST',
           lines: [
             { warehouseId, variantId, quantityDelta: -3, type: 'ISSUE' },
             { warehouseId, variantId: secondVariant.id, quantityDelta: -1, type: 'ISSUE' },
@@ -151,7 +151,7 @@ describe.skipIf(!integrationEnabled)('InventoryService PostgreSQL integration', 
     const key = `it-idempotent-${Date.now()}`;
     const command = {
       businessNumber: `IT-IDEMPOTENT-${Date.now()}`,
-      source: 'ONLINE' as const,
+      source: 'ONLINE_REQUEST' as const,
       lines: [{ warehouseId, variantId, quantityDelta: 1, type: 'INBOUND' as const }],
     };
     const [first, second] = await Promise.all([
@@ -180,7 +180,7 @@ describe.skipIf(!integrationEnabled)('InventoryService PostgreSQL integration', 
     const result = await inventory.transferBatch(
       {
         businessNumber: `IT-TRANSFER-${Date.now()}`,
-        source: 'OFFLINE',
+        source: 'OFFLINE_REQUEST',
         fromWarehouseId: warehouseId,
         toWarehouseId: xihu.id,
         lines: [{ variantId, quantity: 3 }],

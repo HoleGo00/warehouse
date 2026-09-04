@@ -2,11 +2,16 @@
 import { computed, provide, toRef } from 'vue';
 import type { AuthMeResponse } from '@glorychips/contracts';
 import {
+  ArrowRightLeft,
+  CalendarDays,
   ClipboardCheck,
   ClipboardList,
   FilePlus2,
+  ListChecks,
   LogOut,
   PackageSearch,
+  PackagePlus,
+  ScanLine,
   Settings,
   Warehouse,
 } from '@lucide/vue';
@@ -65,6 +70,34 @@ const accountRoleLabel = computed(() => {
         <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/requests/offline">
           <FilePlus2 :size="18" aria-hidden="true" />
           线下登记
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/inventory/inbound">
+          <PackagePlus :size="18" aria-hidden="true" />
+          入库登记
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/inventory/transfer">
+          <ArrowRightLeft :size="18" aria-hidden="true" />
+          库存调拨
+        </RouterLink>
+        <RouterLink
+          v-if="isWarehouseAdministrator"
+          class="nav-link"
+          to="/admin/inventory/stocktake"
+        >
+          <ScanLine :size="18" aria-hidden="true" />
+          库存盘点
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/returns">
+          <ClipboardList :size="18" aria-hidden="true" />
+          实物归还
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/tasks">
+          <ListChecks :size="18" aria-hidden="true" />
+          管理员任务
+        </RouterLink>
+        <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/work-calendar">
+          <CalendarDays :size="18" aria-hidden="true" />
+          工作日历
         </RouterLink>
         <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/catalog">
           <Settings :size="18" aria-hidden="true" />

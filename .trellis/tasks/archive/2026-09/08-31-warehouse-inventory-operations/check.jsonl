@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Atomicity, idempotency, authorization and full database gate"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Stable domain and HTTP errors"}
+{"file": ".trellis/spec/backend/inventory-operations-workflow.md", "reason": "Inventory transaction, return, task, worker and calendar invariants"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend async behavior and project quality gate"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "Desktop and mobile visual acceptance"}
+{"file": ".trellis/spec/frontend/inventory-operations-ui.md", "reason": "Route, form, return and responsive UI contract"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer contract and round-trip verification"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "Parent AC12, AC15, AC18, AC20 and AC21"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md", "reason": "Immediate local mutation and outbox boundary"}

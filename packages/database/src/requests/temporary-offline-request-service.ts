@@ -83,7 +83,7 @@ export class TemporaryOfflineRequestService {
           transaction,
           {
             businessNumber: request.requestNumber,
-            source: 'EXPRESS',
+            source: 'EXPRESS_REQUEST',
             requestId: request.id,
             actorUserId: principal.userId,
             lines: items.map((item) => ({
@@ -359,7 +359,7 @@ export class TemporaryOfflineRequestService {
           transaction,
           {
             businessNumber: request.requestNumber,
-            source: 'OFFLINE',
+            source: 'OFFLINE_REQUEST',
             requestId: request.id,
             actorUserId: principal.userId,
             lines: items.map((item) => ({

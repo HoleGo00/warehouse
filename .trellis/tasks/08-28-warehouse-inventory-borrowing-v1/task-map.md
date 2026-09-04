@@ -23,7 +23,7 @@
 
 ## 当前状态
 
-- 已完成：`08-31-warehouse-foundation-domain`、`08-31-warehouse-feishu-auth-rbac`、`08-31-warehouse-catalog-inventory-qr`、`08-31-warehouse-normal-borrowing`、`08-31-warehouse-temporary-offline`。
-- 下一项允许规划和启动：`08-31-warehouse-inventory-operations`。
-- 第 7 至 9 个业务子任务：仅完成范围登记，保持 `planning`。
+- 已完成：`08-31-warehouse-foundation-domain`、`08-31-warehouse-feishu-auth-rbac`、`08-31-warehouse-catalog-inventory-qr`、`08-31-warehouse-normal-borrowing`、`08-31-warehouse-temporary-offline`、`08-31-warehouse-inventory-operations`。
+- 下一项允许规划：`08-31-warehouse-feishu-sync-migration`；完成最终规划复核并获得用户批准后方可启动实施。
+- 第 7 至 9 个业务子任务：仅完成范围登记，保持 `planning`；第 7 项是下一规划目标。
 - 真实飞书数据：保持只读，直到第 7 个子任务通过其迁移 dry-run 和测试验收。

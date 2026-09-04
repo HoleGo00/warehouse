@@ -8,6 +8,12 @@ import NormalRequestApplyView from '../features/requests/NormalRequestApplyView.
 import OfflineRequestView from '../features/requests/OfflineRequestView.vue';
 import RequestDetailView from '../features/requests/RequestDetailView.vue';
 import TemporaryRequestApplyView from '../features/requests/TemporaryRequestApplyView.vue';
+import AdminTasksView from '../features/inventory-operations/AdminTasksView.vue';
+import InboundView from '../features/inventory-operations/InboundView.vue';
+import ReturnsView from '../features/inventory-operations/ReturnsView.vue';
+import StocktakeView from '../features/inventory-operations/StocktakeView.vue';
+import TransferView from '../features/inventory-operations/TransferView.vue';
+import WorkCalendarView from '../features/inventory-operations/WorkCalendarView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -34,6 +40,12 @@ export const router = createRouter({
       component: OfflineRequestView,
     },
     { path: '/admin/catalog', name: 'catalog-admin', component: CatalogAdminView },
+    { path: '/admin/inventory/inbound', name: 'inventory-inbound', component: InboundView },
+    { path: '/admin/inventory/transfer', name: 'inventory-transfer', component: TransferView },
+    { path: '/admin/inventory/stocktake', name: 'inventory-stocktake', component: StocktakeView },
+    { path: '/admin/returns', name: 'admin-returns', component: ReturnsView },
+    { path: '/admin/tasks', name: 'admin-tasks', component: AdminTasksView },
+    { path: '/admin/work-calendar', name: 'work-calendar', component: WorkCalendarView },
     { path: '/:pathMatch(.*)*', redirect: '/inventory' },
   ],
 });

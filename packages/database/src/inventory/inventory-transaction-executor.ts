@@ -20,6 +20,8 @@ import type {
   ReleaseReservationResult,
   ReservationBatchResult,
   ReserveBatchCommand,
+  TransferBatchCommand,
+  TransferBatchResult,
 } from './types.js';
 
 type Transaction = Prisma.TransactionClient;
@@ -244,6 +246,7 @@ export class InventoryTransactionExecutor {
           deduplicationKey: `${deduplicationPrefix}:${index}:${keyOf(line)}`,
           businessNumber: command.businessNumber,
           requestId: command.requestId,
+          operationId: command.operationId,
           warehouseId: line.warehouseId,
           variantId: line.variantId,
           type: line.type,
@@ -252,6 +255,7 @@ export class InventoryTransactionExecutor {
           quantityAfter: quantityBefore + line.quantityDelta,
           source: command.source,
           actorUserId: command.actorUserId,
+          occurredAt: command.occurredAt,
         },
       });
       movementIds.push(movement.id);
@@ -293,6 +297,157 @@ export class InventoryTransactionExecutor {
       outboxJobId,
       availability: await this.readAvailability(transaction, lines),
     };
+  }
+
+  public async transferBatchInTransaction(
+    transaction: Transaction,
+    command: TransferBatchCommand,
+    deduplicationPrefix: string,
+  ): Promise<TransferBatchResult> {
+    if (command.fromWarehouseId === command.toWarehouseId) {
+      throw new InvalidInventoryCommandError('Transfer warehouses must be different.');
+    }
+    const quantities = new Map<string, number>();
+    for (const line of command.lines) {
+      if (!Number.isSafeInteger(line.quantity) || line.quantity <= 0) {
+        throw new InvalidInventoryCommandError(
+          'Transfer quantity must be a positive safe integer.',
+        );
+      }
+      quantities.set(line.variantId, (quantities.get(line.variantId) ?? 0) + line.quantity);
+    }
+    if (quantities.size === 0) {
+      throw new InvalidInventoryCommandError('At least one transfer line is required.');
+    }
+    const sourceLines = [...quantities]
+      .map(([variantId, quantity]) => ({
+        warehouseId: command.fromWarehouseId,
+        variantId,
+        quantity,
+      }))
+      .sort(compareKeys);
+    const destinationLines = sourceLines.map((line) => ({
+      ...line,
+      warehouseId: command.toWarehouseId,
+    }));
+    const allKeys = [...sourceLines, ...destinationLines].sort(compareKeys);
+    const balances = await this.lockBalances(transaction, allKeys);
+    this.assertSufficient(balances, sourceLines);
+
+    const transferId = command.transferId ?? command.operationId ?? randomUUID();
+    const movementIds: string[] = [];
+    for (const [index, sourceLine] of sourceLines.entries()) {
+      const destinationLine = destinationLines[index];
+      if (destinationLine === undefined) {
+        throw new InvalidInventoryCommandError('Transfer destination line is missing.');
+      }
+      const sourceBalance = balances.get(keyOf(sourceLine));
+      const destinationBalance = balances.get(keyOf(destinationLine));
+      if (sourceBalance === undefined || destinationBalance === undefined) {
+        throw new InvalidInventoryCommandError('Locked inventory balance disappeared.');
+      }
+      const sourceBefore =
+        sourceBalance.confirmedFeishuQuantity + sourceBalance.pendingMovementDelta;
+      const destinationBefore =
+        destinationBalance.confirmedFeishuQuantity + destinationBalance.pendingMovementDelta;
+      const outbound = await transaction.inventoryMovement.create({
+        data: {
+          deduplicationKey: `${deduplicationPrefix}:${index}:OUT`,
+          businessNumber: command.businessNumber,
+          transferId,
+          operationId: command.operationId,
+          warehouseId: sourceLine.warehouseId,
+          variantId: sourceLine.variantId,
+          type: 'TRANSFER_OUT',
+          quantityDelta: -sourceLine.quantity,
+          quantityBefore: sourceBefore,
+          quantityAfter: sourceBefore - sourceLine.quantity,
+          source: command.source,
+          actorUserId: command.actorUserId,
+          occurredAt: command.occurredAt,
+        },
+      });
+      const inbound = await transaction.inventoryMovement.create({
+        data: {
+          deduplicationKey: `${deduplicationPrefix}:${index}:IN`,
+          businessNumber: command.businessNumber,
+          transferId,
+          operationId: command.operationId,
+          warehouseId: destinationLine.warehouseId,
+          variantId: destinationLine.variantId,
+          type: 'TRANSFER_IN',
+          quantityDelta: destinationLine.quantity,
+          quantityBefore: destinationBefore,
+          quantityAfter: destinationBefore + destinationLine.quantity,
+          source: command.source,
+          actorUserId: command.actorUserId,
+          occurredAt: command.occurredAt,
+        },
+      });
+      movementIds.push(outbound.id, inbound.id);
+      await transaction.inventoryBalance.update({
+        where: {
+          warehouseId_variantId: {
+            warehouseId: sourceLine.warehouseId,
+            variantId: sourceLine.variantId,
+          },
+        },
+        data: {
+          pendingMovementDelta: { decrement: sourceLine.quantity },
+          version: { increment: 1 },
+          lastMovementId: outbound.id,
+        },
+      });
+      await transaction.inventoryBalance.update({
+        where: {
+          warehouseId_variantId: {
+            warehouseId: destinationLine.warehouseId,
+            variantId: destinationLine.variantId,
+          },
+        },
+        data: {
+          pendingMovementDelta: { increment: destinationLine.quantity },
+          version: { increment: 1 },
+          lastMovementId: inbound.id,
+        },
+      });
+    }
+    const outboxJobId = await this.createMovementOutbox(
+      transaction,
+      deduplicationPrefix,
+      command.businessNumber,
+      movementIds,
+      sourceLines.map((line) => line.variantId),
+    );
+    await transaction.auditLog.create({
+      data: {
+        actorUserId: command.actorUserId,
+        action: 'INVENTORY_TRANSFER_APPLIED',
+        entityType: 'INVENTORY_TRANSFER',
+        entityId: transferId,
+        after: toJson({
+          fromWarehouseId: command.fromWarehouseId,
+          toWarehouseId: command.toWarehouseId,
+          lines: sourceLines,
+          movementIds,
+          outboxJobId,
+        }),
+      },
+    });
+    return {
+      transferId,
+      movementIds,
+      outboxJobId,
+      availability: await this.readAvailability(transaction, allKeys),
+    };
+  }
+
+  public async readLockedAvailabilityInTransaction(
+    transaction: Transaction,
+    keys: readonly InventoryKey[],
+  ): Promise<readonly InventoryAvailability[]> {
+    await this.lockBalances(transaction, keys);
+    return this.readAvailability(transaction, keys);
   }
 
   private async lockBalances(

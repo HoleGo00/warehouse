@@ -142,6 +142,12 @@ const knownReturnPathSchema = z.string().refine((value) => {
         url.pathname === '/admin/access' ||
         url.pathname === '/admin/catalog' ||
         url.pathname === '/admin/requests' ||
+        url.pathname === '/admin/inventory/inbound' ||
+        url.pathname === '/admin/inventory/transfer' ||
+        url.pathname === '/admin/inventory/stocktake' ||
+        url.pathname === '/admin/returns' ||
+        url.pathname === '/admin/tasks' ||
+        url.pathname === '/admin/work-calendar' ||
         url.pathname === '/inventory' ||
         url.pathname === '/requests/me' ||
         /^\/requests\/[0-9a-fA-F-]{36}$/.test(url.pathname) ||

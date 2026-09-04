@@ -25,7 +25,15 @@ export const requestDetailInclude = {
   items: { orderBy: { createdAt: 'asc' } },
   approvals: { include: { reviewer: true }, orderBy: { reviewedAt: 'asc' } },
   fulfillment: { include: { executor: true } },
-  returnObligations: { orderBy: { createdAt: 'asc' } },
+  returnObligations: {
+    include: {
+      returns: {
+        include: { warehouse: true, processor: true },
+        orderBy: { returnedAt: 'asc' },
+      },
+    },
+    orderBy: { createdAt: 'asc' },
+  },
   adminTasks: {
     where: { type: { in: ['PAPERWORK_REQUIRED', 'PAPERWORK_OVERDUE'] } },
     orderBy: { createdAt: 'asc' },
@@ -203,6 +211,11 @@ const allowedActions = (record: RequestRecord, principal: SessionPrincipal) => {
       record.status === 'PENDING_APPROVAL',
     fulfill: admin && record.origin === 'ONLINE' && record.status === 'PENDING_RELEASE',
     adminCancel: admin && record.origin === 'ONLINE' && record.status === 'PENDING_RELEASE',
+    confirmReturn:
+      admin &&
+      record.returnObligations.some(
+        (obligation) => obligation.status === 'PENDING' || obligation.status === 'PARTIAL',
+      ),
   };
 };
 
@@ -283,7 +296,17 @@ export const toRequestDetail = (
       dueDate: toDateOnly(obligation.dueDate),
       requiredQuantity: obligation.requiredQuantity,
       returnedQuantity: obligation.returnedQuantity,
+      remainingQuantity: obligation.requiredQuantity - obligation.returnedQuantity,
       status: obligation.status,
+      returns: obligation.returns.map((record) => ({
+        id: record.id,
+        warehouse: warehouseCodeSchema.parse(record.warehouse.code),
+        warehouseName: record.warehouse.name,
+        quantity: record.quantity,
+        processorId: record.processorId,
+        processorName: record.processor.name,
+        returnedAt: record.returnedAt.toISOString(),
+      })),
     })),
   };
 };
