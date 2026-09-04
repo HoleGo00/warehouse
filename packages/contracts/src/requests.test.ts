@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   cancelNormalRequestSchema,
+  completeTemporaryPaperworkSchema,
   createNormalRequestSchema,
+  createOfflineRequestSchema,
+  createTemporaryRequestSchema,
   reviewNormalRequestSchema,
 } from './requests.js';
 
@@ -63,5 +66,44 @@ describe('normal request contracts', () => {
     expect(reviewNormalRequestSchema.safeParse({ decision: 'REJECTED' }).success).toBe(false);
     expect(reviewNormalRequestSchema.safeParse({ decision: 'APPROVED' }).success).toBe(true);
     expect(cancelNormalRequestSchema.safeParse({ reason: '  ' }).success).toBe(false);
+  });
+
+  it('accepts a minimal temporary request and rejects duplicate variants', () => {
+    expect(
+      createTemporaryRequestSchema.safeParse({
+        warehouse: 'YUHANG',
+        items: [{ variantId, quantity: 1 }],
+      }).success,
+    ).toBe(true);
+    expect(
+      createTemporaryRequestSchema.safeParse({
+        warehouse: 'YUHANG',
+        items: [
+          { variantId, quantity: 1 },
+          { variantId, quantity: 2 },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('requires complete policy fields for paperwork and offline registration', () => {
+    const paperwork = {
+      type: 'INTERNAL' as const,
+      purposeObject: '展会健康体验',
+      finalDestination: '市场部',
+      returnMode: 'ON_DEPARTURE' as const,
+    };
+    expect(completeTemporaryPaperworkSchema.safeParse(paperwork).success).toBe(true);
+    expect(
+      createOfflineRequestSchema.safeParse({
+        warehouse: 'YUHANG',
+        claimantId: '22222222-2222-4222-8222-222222222222',
+        ...paperwork,
+        items: [{ variantId, quantity: 1 }],
+      }).success,
+    ).toBe(true);
+    expect(
+      completeTemporaryPaperworkSchema.safeParse({ ...paperwork, purposeObject: '' }).success,
+    ).toBe(false);
   });
 });

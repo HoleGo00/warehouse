@@ -68,7 +68,6 @@ onMounted(load);
           <MapPinned :size="26" />
         </div>
         <div>
-          <p class="page-kicker">扫码入口已锁定</p>
           <h1 id="entry-title" class="page-title">{{ entry.name }}</h1>
           <p class="entry-code">{{ entry.code }}</p>
         </div>
@@ -81,28 +80,22 @@ onMounted(load);
           aria-labelledby="normal-title"
         >
           <ClipboardList :size="24" aria-hidden="true" />
-          <div>
-            <h2 id="normal-title">正常领用</h2>
-            <p>按标准申请、审批和仓库发放流程办理。</p>
-          </div>
+          <h2 id="normal-title">正常领用</h2>
           <span class="available-now">开始申请</span>
         </RouterLink>
 
-        <section class="flow-option" aria-labelledby="temporary-title">
+        <RouterLink
+          class="flow-option flow-option-link"
+          :to="`/w/${entry.code}/apply/temporary`"
+          aria-labelledby="temporary-title"
+        >
           <Clock3 :size="24" aria-hidden="true" />
-          <div>
-            <h2 id="temporary-title">临时领用</h2>
-            <p>用于紧急线下发放后的补手续入口。</p>
-          </div>
-          <span class="coming-soon">后续任务开放</span>
-        </section>
+          <h2 id="temporary-title">临时领用</h2>
+          <span class="available-now">立即出库</span>
+        </RouterLink>
       </div>
 
       <aside class="entry-note">
-        <div>
-          <strong>正常领用已启用</strong>
-          <p>提交申请不会立即扣减库存，审核通过后预占，确认发放时才生成库存流水。</p>
-        </div>
         <a
           class="download-link"
           :href="api.qrDownloadUrl(entry.qrCodeUrl)"
@@ -145,26 +138,16 @@ onMounted(load);
   background: #1d684d;
 }
 
-.page-kicker,
 .page-title,
 .entry-code,
 .flow-option h2,
-.flow-option p,
-.entry-note p,
 .environment-note,
 .invalid-state h1,
 .invalid-state p {
   margin: 0;
 }
 
-.page-kicker {
-  color: #a0522f;
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
 .page-title {
-  margin-top: 0.2rem;
   color: #24312b;
   font-size: 1.55rem;
 }
@@ -210,22 +193,6 @@ onMounted(load);
   font-size: 1.05rem;
 }
 
-.flow-option p {
-  margin-top: 0.45rem;
-  color: #69766f;
-  line-height: 1.6;
-}
-
-.coming-soon {
-  width: fit-content;
-  border-radius: 4px;
-  padding: 0.28rem 0.5rem;
-  color: #755119;
-  background: #fff0d2;
-  font-size: 0.74rem;
-  font-weight: 700;
-}
-
 .available-now {
   width: fit-content;
   border-radius: 4px;
@@ -239,21 +206,11 @@ onMounted(load);
 .entry-note {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   padding: 1rem 1.1rem;
   border-left: 3px solid #1e684d;
   background: #eaf3ed;
-}
-
-.entry-note strong {
-  color: #244033;
-}
-
-.entry-note p {
-  margin-top: 0.2rem;
-  color: #607067;
-  font-size: 0.84rem;
 }
 
 .download-link,

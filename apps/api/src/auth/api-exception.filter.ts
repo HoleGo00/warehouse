@@ -39,6 +39,7 @@ const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
   IDEMPOTENCY_CONFLICT: 409,
   INVALID_INVENTORY_COMMAND: 400,
   RESERVATION_STATE_CONFLICT: 409,
+  CLAIMANT_NOT_FOUND: 404,
 };
 
 @Catch()

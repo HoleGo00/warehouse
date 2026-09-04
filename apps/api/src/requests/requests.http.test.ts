@@ -13,7 +13,15 @@ import { RequestDomainError } from '@glorychips/database';
 import type { SessionPrincipal } from '@glorychips/database';
 import { ApiExceptionFilter } from '../auth/api-exception.filter.js';
 import { SessionGuard } from '../auth/session.guard.js';
-import { API_ENVIRONMENT, AUTH_SERVICE, NORMAL_REQUEST_SERVICE } from '../auth/tokens.js';
+import {
+  API_ENVIRONMENT,
+  AUTH_SERVICE,
+  NORMAL_REQUEST_SERVICE,
+  REQUEST_QUERY_SERVICE,
+  REQUEST_REVIEW_SERVICE,
+  TEMPORARY_OFFLINE_REQUEST_SERVICE,
+} from '../auth/tokens.js';
+import { AdminClaimantsController } from './admin-claimants.controller.js';
 import { AdminRequestsController } from './admin-requests.controller.js';
 import { RequestsController } from './requests.controller.js';
 
@@ -53,6 +61,7 @@ const detail = {
   warehouseName: '余杭仓',
   claimantId: userId,
   claimantName: 'Employee',
+  origin: 'ONLINE' as const,
   type: 'INTERNAL' as const,
   purposeObject: 'HTTP 测试',
   finalDestination: '测试部门',
@@ -67,8 +76,11 @@ const detail = {
   createdAt: '2026-09-04T00:00:00.000Z',
   updatedAt: '2026-09-04T00:00:00.000Z',
   latestReviewComment: null,
+  paperworkDueAt: null,
+  paperworkOverdue: false,
   allowedActions: {
     resubmit: false,
+    completePaperwork: false,
     cancel: true,
     review: false,
     fulfill: false,
@@ -170,17 +182,84 @@ class HttpNormalRequestService {
   }
 }
 
+class HttpRequestQueryService {
+  public async listMine() {
+    return { items: [] };
+  }
+
+  public async getVisibleDetail() {
+    return { request: detail };
+  }
+
+  public async listAdminQueue(query: NormalRequestAdminQueueQuery) {
+    if (query.warehouse === 'XIHU') {
+      throw new RequestDomainError('REQUEST_FORBIDDEN', 'Outside warehouse scope.');
+    }
+    return { items: [] };
+  }
+
+  public async listPaperworkQueue() {
+    return { items: [] };
+  }
+
+  public async searchClaimants() {
+    return { items: [{ id: userId, name: 'Employee', avatarUrl: null }] };
+  }
+}
+
+class HttpTemporaryRequestService {
+  public async createTemporary() {
+    return {
+      request: {
+        ...detail,
+        origin: 'EXPRESS' as const,
+        type: null,
+        purposeObject: null,
+        finalDestination: null,
+        status: 'PENDING_PAPERWORK' as const,
+        paperworkDueAt: '2026-09-09T15:59:59.999Z',
+      },
+    };
+  }
+
+  public async completePaperwork() {
+    return { request: { ...detail, origin: 'EXPRESS' as const } };
+  }
+
+  public async createOffline() {
+    return { request: { ...detail, origin: 'OFFLINE' as const, status: 'COMPLETED' as const } };
+  }
+}
+
+class HttpRequestReviewService {
+  public async review(_requestId: string, command: ReviewNormalRequest) {
+    return {
+      request: {
+        ...detail,
+        status:
+          command.decision === 'APPROVED' ? ('PENDING_RELEASE' as const) : ('REJECTED' as const),
+      },
+    };
+  }
+}
+
 describe('normal request HTTP pipeline', () => {
   let application: INestApplication;
   let service: HttpNormalRequestService;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      controllers: [RequestsController, AdminRequestsController],
+      controllers: [RequestsController, AdminRequestsController, AdminClaimantsController],
       providers: [
         { provide: API_ENVIRONMENT, useValue: environment },
         { provide: AUTH_SERVICE, useClass: HttpSessionService },
         { provide: NORMAL_REQUEST_SERVICE, useClass: HttpNormalRequestService },
+        { provide: REQUEST_QUERY_SERVICE, useClass: HttpRequestQueryService },
+        { provide: REQUEST_REVIEW_SERVICE, useClass: HttpRequestReviewService },
+        {
+          provide: TEMPORARY_OFFLINE_REQUEST_SERVICE,
+          useClass: HttpTemporaryRequestService,
+        },
         SessionGuard,
         { provide: APP_FILTER, useClass: ApiExceptionFilter },
       ],
@@ -261,5 +340,90 @@ describe('normal request HTTP pipeline', () => {
       .send({})
       .expect(409)
       .expect(({ body }) => expect(body.code).toBe('REQUEST_STATE_CONFLICT'));
+  });
+
+  it('keeps temporary, paperwork and offline static routes reachable', async () => {
+    const claimantCookie = `${environment.SESSION_COOKIE_NAME}=claimant-token`;
+    const adminCookie = `${environment.SESSION_COOKIE_NAME}=admin-token`;
+    await request(application.getHttpServer())
+      .post('/requests/temporary')
+      .set('Cookie', claimantCookie)
+      .set('Idempotency-Key', 'temporary-http-key')
+      .send({ warehouse: 'YUHANG', items: [{ variantId, quantity: 1 }] })
+      .expect(201)
+      .expect(({ body }) => expect(body.request.status).toBe('PENDING_PAPERWORK'));
+    await request(application.getHttpServer())
+      .put(`/requests/${requestId}/paperwork`)
+      .set('Cookie', claimantCookie)
+      .set('Idempotency-Key', 'paperwork-http-key')
+      .send({
+        type: 'INTERNAL',
+        purposeObject: '补充用途',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+      })
+      .expect(200);
+    await request(application.getHttpServer())
+      .get('/admin/requests/paperwork')
+      .query({ warehouse: 'YUHANG', state: 'REQUIRED' })
+      .set('Cookie', adminCookie)
+      .expect(200);
+    await request(application.getHttpServer())
+      .get('/admin/claimants')
+      .query({ query: 'Employee' })
+      .set('Cookie', adminCookie)
+      .expect(200)
+      .expect(({ body }) => expect(body.items).toHaveLength(1));
+    await request(application.getHttpServer())
+      .post('/admin/requests/offline')
+      .set('Cookie', adminCookie)
+      .set('Idempotency-Key', 'offline-http-key')
+      .send({
+        warehouse: 'YUHANG',
+        claimantId: userId,
+        type: 'INTERNAL',
+        purposeObject: '线下领取',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+        items: [{ variantId, quantity: 1 }],
+      })
+      .expect(201)
+      .expect(({ body }) => expect(body.request.origin).toBe('OFFLINE'));
+  });
+
+  it('requires idempotency keys for every temporary and offline mutation', async () => {
+    const claimantCookie = `${environment.SESSION_COOKIE_NAME}=claimant-token`;
+    const adminCookie = `${environment.SESSION_COOKIE_NAME}=admin-token`;
+    await request(application.getHttpServer())
+      .post('/requests/temporary')
+      .set('Cookie', claimantCookie)
+      .send({ warehouse: 'YUHANG', items: [{ variantId, quantity: 1 }] })
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('VALIDATION_ERROR'));
+    await request(application.getHttpServer())
+      .put(`/requests/${requestId}/paperwork`)
+      .set('Cookie', claimantCookie)
+      .send({
+        type: 'INTERNAL',
+        purposeObject: '补充用途',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+      })
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('VALIDATION_ERROR'));
+    await request(application.getHttpServer())
+      .post('/admin/requests/offline')
+      .set('Cookie', adminCookie)
+      .send({
+        warehouse: 'YUHANG',
+        claimantId: userId,
+        type: 'INTERNAL',
+        purposeObject: '线下领取',
+        finalDestination: '测试部门',
+        returnMode: 'NOT_REQUIRED',
+        items: [{ variantId, quantity: 1 }],
+      })
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('VALIDATION_ERROR'));
   });
 });

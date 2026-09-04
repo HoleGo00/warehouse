@@ -3,6 +3,8 @@ import type {
   CatalogListResponse,
   InventoryQueryResponse,
   NormalRequestDraft,
+  RequestItemInput,
+  RequestOrigin,
   RequestStatus,
   RequestType,
   ReturnMode,
@@ -39,6 +41,32 @@ export const requestStatusLabels: Readonly<Record<RequestStatus, string>> = {
   COMPLETED: '已完成',
   REJECTED: '已退回',
   CANCELLED: '已取消',
+};
+
+export const requestOriginLabels: Readonly<Record<RequestOrigin, string>> = {
+  ONLINE: '线上申请',
+  EXPRESS: '临时领用',
+  OFFLINE: '线下登记',
+};
+
+export const requestTypeLabel = (type: RequestType | null): string =>
+  type === null ? '待补充' : requestTypeLabels[type];
+
+export const requestStatusLabel = (status: RequestStatus, origin: RequestOrigin): string =>
+  status === 'REJECTED' && origin === 'EXPRESS' ? '待补正' : requestStatusLabels[status];
+
+export const requestPurposeLabel = (purposeObject: string | null): string =>
+  purposeObject ?? '待补手续';
+
+export const validateRequestItems = (items: readonly RequestItemInput[]): readonly string[] => {
+  if (items.length === 0) return ['请至少添加一个商品规格'];
+  if (items.some((item) => !Number.isSafeInteger(item.quantity) || item.quantity <= 0)) {
+    return ['商品数量必须为正整数'];
+  }
+  if (new Set(items.map((item) => item.variantId)).size !== items.length) {
+    return ['同一商品规格不能重复'];
+  }
+  return [];
 };
 
 export const buildRequestVariantOptions = (

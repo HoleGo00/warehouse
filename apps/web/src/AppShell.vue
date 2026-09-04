@@ -4,6 +4,7 @@ import type { AuthMeResponse } from '@glorychips/contracts';
 import {
   ClipboardCheck,
   ClipboardList,
+  FilePlus2,
   LogOut,
   PackageSearch,
   Settings,
@@ -60,6 +61,10 @@ const accountRoleLabel = computed(() => {
         <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/requests">
           <ClipboardCheck :size="18" aria-hidden="true" />
           审核与发放
+        </RouterLink>
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/requests/offline">
+          <FilePlus2 :size="18" aria-hidden="true" />
+          线下登记
         </RouterLink>
         <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/catalog">
           <Settings :size="18" aria-hidden="true" />

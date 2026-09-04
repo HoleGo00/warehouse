@@ -3,8 +3,11 @@ import type { CatalogListResponse, InventoryQueryResponse } from '@glorychips/co
 import {
   buildRequestVariantOptions,
   normalizeReturnPolicy,
+  requestStatusLabel,
+  requestTypeLabel,
   totalRequestQuantity,
   validateNormalRequestDraft,
+  validateRequestItems,
 } from './request-view-model.js';
 
 const variantId = '11111111-1111-4111-8111-111111111111';
@@ -111,5 +114,13 @@ describe('normal request view model', () => {
     };
     expect(validateNormalRequestDraft(draft, '2026-09-04')).toContain('预计归还日期不能早于今天');
     expect(totalRequestQuantity(draft)).toBe(3);
+  });
+
+  it('projects temporary labels and validates the minimum item command', () => {
+    expect(requestTypeLabel(null)).toBe('待补充');
+    expect(requestStatusLabel('REJECTED', 'EXPRESS')).toBe('待补正');
+    expect(requestStatusLabel('REJECTED', 'ONLINE')).toBe('已退回');
+    expect(validateRequestItems([])).toEqual(['请至少添加一个商品规格']);
+    expect(validateRequestItems([{ variantId, quantity: 0 }])).toEqual(['商品数量必须为正整数']);
   });
 });
