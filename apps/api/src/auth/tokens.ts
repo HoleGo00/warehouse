@@ -1,0 +1,4 @@
+export const API_ENVIRONMENT = Symbol('API_ENVIRONMENT');
+export const DATABASE_CLIENT = Symbol('DATABASE_CLIENT');
+export const AUTH_SERVICE = Symbol('AUTH_SERVICE');
+export const FEISHU_IDENTITY_PROVIDER = Symbol('FEISHU_IDENTITY_PROVIDER');

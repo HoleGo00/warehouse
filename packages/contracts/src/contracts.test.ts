@@ -1,13 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateAvailability,
+  feishuAppIdSchema,
+  isFeishuAppId,
+  normalizeAuthReturnPath,
   productCatalog,
   productStatusSchema,
   ringSizeSchema,
   ringSizes,
+  updateAccessRequestSchema,
 } from './index.js';
 
 describe('shared contracts', () => {
+  it('accepts real Feishu App ID shapes and rejects preview placeholders', () => {
+    expect(feishuAppIdSchema.parse('cli_0123456789abcdef')).toBe('cli_0123456789abcdef');
+    expect(isFeishuAppId('cli_local_visual_check')).toBe(false);
+    expect(isFeishuAppId('replace_with_feishu_app_id')).toBe(false);
+  });
+
   it('defines the exact supported ring sizes', () => {
     expect(ringSizes).toEqual(['6#', '7#', '8#', '9#', '10#', '11#', '12#', '13#']);
     expect(ringSizeSchema.safeParse('14#').success).toBe(false);
@@ -29,5 +39,27 @@ describe('shared contracts', () => {
         reservedQuantity: 3,
       }),
     ).toEqual({ effectiveOnHandQuantity: 8, availableQuantity: 5 });
+  });
+
+  it('normalizes only known internal authentication return paths', () => {
+    expect(normalizeAuthReturnPath('/w/XIHU/apply?source=qr')).toBe('/w/XIHU/apply?source=qr');
+    expect(normalizeAuthReturnPath('/w/UNKNOWN/apply')).toBe('/');
+    expect(normalizeAuthReturnPath('//evil.example/path')).toBe('/');
+    expect(normalizeAuthReturnPath('https://evil.example/path')).toBe('/');
+  });
+
+  it('rejects invalid warehouse administrator access profiles', () => {
+    expect(
+      updateAccessRequestSchema.safeParse({
+        roles: ['CLAIMANT', 'WAREHOUSE_ADMIN'],
+        warehouses: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      updateAccessRequestSchema.safeParse({
+        roles: ['CLAIMANT', 'WAREHOUSE_ADMIN'],
+        warehouses: ['XIHU'],
+      }).success,
+    ).toBe(true);
   });
 });

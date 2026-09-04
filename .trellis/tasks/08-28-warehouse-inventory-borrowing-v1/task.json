@@ -27,7 +27,8 @@
     "08-31-warehouse-inventory-operations",
     "08-31-warehouse-feishu-sync-migration",
     "08-31-warehouse-query-export-admin",
-    "08-31-warehouse-integration-cutover"
+    "08-31-warehouse-integration-cutover",
+    "08-31-warehouse-feishu-auth-live-fix"
   ],
   "parent": null,
   "relatedFiles": [],

@@ -20,6 +20,11 @@ enum RoleCode {
   SYSTEM_ADMIN
 }
 
+enum AuthLoginKind {
+  OAUTH_STATE
+  CLIENT_CHALLENGE
+}
+
 enum ProductCategoryCode {
   SMART_RING
   SMART_WATCH
@@ -193,6 +198,8 @@ model User {
   updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
   userRoles            UserRole[]
   warehouseAdminScopes WarehouseAdminScope[]
+  authSessions         AuthSession[]
+  bootstrapEvents      SystemBootstrapEvent[]
   requests             Request[]             @relation("RequestClaimant")
   approvalRecords      ApprovalRecord[]      @relation("ApprovalReviewer")
   fulfillments         Fulfillment[]         @relation("FulfillmentExecutor")
@@ -260,6 +267,45 @@ model WarehouseAdminScope {
   @@unique([userId, warehouseId])
   @@index([warehouseId])
   @@map("warehouse_admin_scopes")
+}
+
+model AuthLoginState {
+  id         String        @id @default(uuid()) @db.Uuid
+  digest     String        @unique
+  kind       AuthLoginKind
+  returnTo   String        @map("return_to")
+  expiresAt  DateTime      @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime?     @map("consumed_at") @db.Timestamptz(3)
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([kind, expiresAt])
+  @@map("auth_login_states")
+}
+
+model AuthSession {
+  id          String    @id @default(uuid()) @db.Uuid
+  tokenDigest String    @unique @map("token_digest")
+  userId      String    @map("user_id") @db.Uuid
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(3)
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt, expiresAt])
+  @@map("auth_sessions")
+}
+
+model SystemBootstrapEvent {
+  id                  String   @id @default(uuid()) @db.Uuid
+  key                 String   @unique
+  userId              String   @map("user_id") @db.Uuid
+  tenantKey           String   @map("tenant_key")
+  configVersionDigest String   @map("config_version_digest")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("system_bootstrap_events")
 }
 
 model ProductCategory {
