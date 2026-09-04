@@ -97,3 +97,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 5: 完成临时领用与线下登记
+<!-- trellis-session: v=2 fp=9e176ea2913f3f74 -->
+
+**Date**: 2026-09-04
+**Task**: 完成临时领用与线下登记
+**Branch**: `codex/warehouse-temporary-offline`
+
+### Summary
+
+实现临时领用立即出库、补手续与后补审核、三工作日超期队列、管理员线下登记及 shadcn-vue 前端，并完成全量自动化与双视口视觉验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e3712eb` | feat: 实现临时领用与线下登记 |
+| `b6a56fe` | docs: 补全临时领用任务与规格 |
+
+### Status
+
+[OK] **Completed**
