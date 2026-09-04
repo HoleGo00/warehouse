@@ -12,16 +12,17 @@ This directory contains guidelines for backend development. Fill in each file wi
 
 ## Guidelines Index
 
-| Guide | Description | Status |
-|-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | To fill |
-| [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
-| [Authentication and Authorization](./authentication-guidelines.md) | Feishu login, sessions, bootstrap and warehouse RBAC | Active |
-| [Catalog and Inventory Query](./catalog-inventory-query.md) | Catalog management, image proxy, inventory projection and warehouse QR contracts | Active |
-| [Normal Request Workflow](./normal-request-workflow.md) | Online normal borrowing state machine, atomic inventory actions and idempotency | Active |
+| Guide                                                                             | Description                                                                      | Status  |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------- |
+| [Directory Structure](./directory-structure.md)                                   | Module organization and file layout                                              | To fill |
+| [Database Guidelines](./database-guidelines.md)                                   | ORM patterns, queries, migrations                                                | To fill |
+| [Error Handling](./error-handling.md)                                             | Error types, handling strategies                                                 | To fill |
+| [Quality Guidelines](./quality-guidelines.md)                                     | Code standards, forbidden patterns                                               | To fill |
+| [Logging Guidelines](./logging-guidelines.md)                                     | Structured logging, log levels                                                   | To fill |
+| [Authentication and Authorization](./authentication-guidelines.md)                | Feishu login, sessions, bootstrap and warehouse RBAC                             | Active  |
+| [Catalog and Inventory Query](./catalog-inventory-query.md)                       | Catalog management, image proxy, inventory projection and warehouse QR contracts | Active  |
+| [Normal Request Workflow](./normal-request-workflow.md)                           | Online normal borrowing state machine, atomic inventory actions and idempotency  | Active  |
+| [Temporary and Offline Request Workflow](./temporary-offline-request-workflow.md) | Immediate issue, paperwork, work-calendar deadlines and offline registration     | Active  |
 
 ---
 

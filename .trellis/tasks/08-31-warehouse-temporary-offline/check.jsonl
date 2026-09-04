@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend atomicity, idempotency, authorization and integration gate"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Stable domain and HTTP error mapping"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend async states, component adoption and full project quality gate"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "Desktop and mobile visual acceptance rules"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer contract and round-trip verification"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/prd.md", "reason": "Parent acceptance criteria AC8 through AC17"}
+{"file": ".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md", "reason": "Immediate local mutation and retry-safe outbox boundary"}

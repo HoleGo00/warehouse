@@ -12,17 +12,18 @@ This directory contains guidelines for frontend development. Fill in each file w
 
 ## Guidelines Index
 
-| Guide                                                 | Description                                                                  | Status  |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------- | ------- |
-| [Directory Structure](./directory-structure.md)       | Module organization and file layout                                          | To fill |
-| [Component Guidelines](./component-guidelines.md)     | Component patterns, props, composition                                       | To fill |
-| [Hook Guidelines](./hook-guidelines.md)               | Custom hooks, data fetching patterns                                         | To fill |
-| [State Management](./state-management.md)             | Local state, global state, server state                                      | To fill |
-| [Quality Guidelines](./quality-guidelines.md)         | Code standards, forbidden patterns                                           | To fill |
-| [Type Safety](./type-safety.md)                       | Type patterns, validation                                                    | To fill |
-| [Frontend Design](./design-guidelines.md)             | shadcn foundation, functional copy, theme, geometry and visual review rules  | Active  |
-| [Inventory and Catalog UI](./inventory-catalog-ui.md) | Authenticated inventory, warehouse entry and catalog administration behavior | Active  |
-| [Normal Request UI](./normal-request-ui.md)           | Locked-warehouse claimant forms, request detail and administrator queues     | Active  |
+| Guide                                                                 | Description                                                                  | Status  |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------- |
+| [Directory Structure](./directory-structure.md)                       | Module organization and file layout                                          | To fill |
+| [Component Guidelines](./component-guidelines.md)                     | Component patterns, props, composition                                       | To fill |
+| [Hook Guidelines](./hook-guidelines.md)                               | Custom hooks, data fetching patterns                                         | To fill |
+| [State Management](./state-management.md)                             | Local state, global state, server state                                      | To fill |
+| [Quality Guidelines](./quality-guidelines.md)                         | Code standards, forbidden patterns                                           | To fill |
+| [Type Safety](./type-safety.md)                                       | Type patterns, validation                                                    | To fill |
+| [Frontend Design](./design-guidelines.md)                             | shadcn foundation, functional copy, theme, geometry and visual review rules  | Active  |
+| [Inventory and Catalog UI](./inventory-catalog-ui.md)                 | Authenticated inventory, warehouse entry and catalog administration behavior | Active  |
+| [Normal Request UI](./normal-request-ui.md)                           | Locked-warehouse claimant forms, request detail and administrator queues     | Active  |
+| [Temporary and Offline Request UI](./temporary-offline-request-ui.md) | Immediate temporary issue, paperwork queues and offline registration         | Active  |
 
 ---
 
