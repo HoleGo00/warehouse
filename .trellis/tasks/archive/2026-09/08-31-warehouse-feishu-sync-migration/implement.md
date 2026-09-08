@@ -211,8 +211,8 @@ git diff --check
 
 - [x] 更新 backend/frontend Trellis spec，固化 CLI Gateway、outbox settlement、reconciliation、migration revision 栅栏和同步 UI 契约。
 - [x] 检查独立 worktree，只提交第 7 子任务文件，不接触主工作树的飞书登录延期改动。
-- [x] 用户批准两批本地工作提交、归档和日志；功能、迁移工具与测试已提交为 `4c99e99`，任务/spec 文档纳入第二批提交。
-- [ ] 运行 Trellis archive 与 record-session，归档后重跑测试并核对排除文件未变。
+- [x] 用户批准两批本地工作提交、归档和日志；功能、迁移工具与测试已提交为 `4c99e99`，任务/spec 文档已提交为 `254c9d3`。
+- [x] 运行 Trellis archive；归档后 35 个测试文件、161 项测试全部通过，排除文件保持未提交，当前任务指针已清空。
 - [ ] 推送 `codex/warehouse-feishu-sync-migration`，创建并合并 PR。
 - [ ] 更新 Epic `task-map.md`：前七项完成，下一项为 `08-31-warehouse-query-export-admin`。
 - [ ] 合并后验证 PR `MERGED`、`origin/main` 包含全部提交、所有本地分支 `ahead=0`，再移除临时 worktree。
@@ -220,3 +220,5 @@ git diff --check
 
 2026-09-08 本次授权仅覆盖本地提交、归档与日志。上述推送、PR 合并、临时
 worktree 移除和第 8 项启动均保留为独立后续关口，不因本地任务归档而视为完成。
+归档后测试日志为 `.trellis/.runtime/post-archive-unit-20260908.log`；会话日志
+通过 `add_session.py` 单独记录，以 `.trellis/workspace/holego/` 中对应记录为准。
