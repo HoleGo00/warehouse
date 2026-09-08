@@ -25,6 +25,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Normal Request UI](./normal-request-ui.md)                           | Locked-warehouse claimant forms, request detail and administrator queues     | Active  |
 | [Temporary and Offline Request UI](./temporary-offline-request-ui.md) | Immediate temporary issue, paperwork queues and offline registration         | Active  |
 | [Inventory Operations UI](./inventory-operations-ui.md)               | Inbound, transfer, stocktake, return, task and work-calendar behavior         | Active  |
+| [Synchronization Administration](./sync-admin-ui.md) | Safe sync state, retries, cancellation and generated primitive visual checks | Active |
 
 ---
 
