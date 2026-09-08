@@ -143,3 +143,39 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: 完成飞书库存同步与历史迁移验收
+<!-- trellis-session: v=2 fp=b55b41fbe423aa9f -->
+
+**Date**: 2026-09-08
+**Task**: 完成飞书库存同步与历史迁移验收
+**Branch**: `codex/warehouse-feishu-sync-migration`
+
+### Summary
+
+第7项完成本地功能和验收文档提交及归档。正式影子迁移756条流水已同步，168个余额全部匹配，同批复跑零新增和零数量变化；六个绑定保持PREPARED，停写窗口已释放，旧表仍是生产入口。本次仅本地收尾，未推送、未合并、未激活生产，也未启动第8项。
+
+### Main Changes
+
+- 归档到 .trellis/tasks/archive/2026-09/08-31-warehouse-feishu-sync-migration；当前任务指针已清空。AGENTS.md和主工作树两份登录延期文档保留未提交。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4c99e99` | feat: 实现飞书库存同步与迁移管理 |
+| `254c9d3` | docs: 记录飞书迁移验收与运行规范 |
+
+### Testing
+
+- [OK] 归档后 pnpm test：35个文件、161项测试全部通过；日志 .trellis/.runtime/post-archive-unit-20260908.log。
+- [OK] 归档前最终验收：57项PostgreSQL集成测试、typecheck/lint/build/format/Prisma和双视口模拟API浏览器检查通过；本次文档format和git diff --check通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 等待独立授权后再推送和合并；本次不推进第8项。生产切换归第9项，必须重新确认停写并处理最终增量。
