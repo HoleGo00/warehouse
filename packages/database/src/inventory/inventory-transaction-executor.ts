@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { loadMovementSnapshots } from './movement-snapshots.js';
 import {
   calculateAvailability,
   inventoryLineSchema,
@@ -33,6 +34,7 @@ type LockedBalance = {
   readonly confirmedFeishuQuantity: number;
   readonly pendingMovementDelta: number;
   readonly reservedQuantity: number;
+  readonly movementSequence: number;
 };
 
 const keyOf = (key: InventoryKey): string => `${key.warehouseId}:${key.variantId}`;
@@ -232,6 +234,11 @@ export class InventoryTransactionExecutor {
     }
 
     const movementIds: string[] = [];
+    const snapshots = await loadMovementSnapshots(
+      transaction,
+      lines.map((line) => line.variantId),
+      command.actorUserId,
+    );
     for (const [index, line] of lines.entries()) {
       const balance = balances.get(keyOf(line));
       if (balance === undefined) {
@@ -253,8 +260,10 @@ export class InventoryTransactionExecutor {
           quantityDelta: line.quantityDelta,
           quantityBefore,
           quantityAfter: quantityBefore + line.quantityDelta,
+          balanceSequence: balance.movementSequence + 1,
           source: command.source,
           actorUserId: command.actorUserId,
+          ...snapshots.get(line.variantId),
           occurredAt: command.occurredAt,
         },
       });
@@ -268,6 +277,7 @@ export class InventoryTransactionExecutor {
         },
         data: {
           pendingMovementDelta: { increment: line.quantityDelta },
+          movementSequence: { increment: 1 },
           reservedQuantity: { decrement: consumedReservations.get(keyOf(line)) ?? 0 },
           version: { increment: 1 },
           lastMovementId: movement.id,
@@ -335,6 +345,11 @@ export class InventoryTransactionExecutor {
     this.assertSufficient(balances, sourceLines);
 
     const transferId = command.transferId ?? command.operationId ?? randomUUID();
+    const snapshots = await loadMovementSnapshots(
+      transaction,
+      sourceLines.map((line) => line.variantId),
+      command.actorUserId,
+    );
     const movementIds: string[] = [];
     for (const [index, sourceLine] of sourceLines.entries()) {
       const destinationLine = destinationLines[index];
@@ -362,8 +377,10 @@ export class InventoryTransactionExecutor {
           quantityDelta: -sourceLine.quantity,
           quantityBefore: sourceBefore,
           quantityAfter: sourceBefore - sourceLine.quantity,
+          balanceSequence: sourceBalance.movementSequence + 1,
           source: command.source,
           actorUserId: command.actorUserId,
+          ...snapshots.get(sourceLine.variantId),
           occurredAt: command.occurredAt,
         },
       });
@@ -379,8 +396,10 @@ export class InventoryTransactionExecutor {
           quantityDelta: destinationLine.quantity,
           quantityBefore: destinationBefore,
           quantityAfter: destinationBefore + destinationLine.quantity,
+          balanceSequence: destinationBalance.movementSequence + 1,
           source: command.source,
           actorUserId: command.actorUserId,
+          ...snapshots.get(destinationLine.variantId),
           occurredAt: command.occurredAt,
         },
       });
@@ -394,6 +413,7 @@ export class InventoryTransactionExecutor {
         },
         data: {
           pendingMovementDelta: { decrement: sourceLine.quantity },
+          movementSequence: { increment: 1 },
           version: { increment: 1 },
           lastMovementId: outbound.id,
         },
@@ -407,6 +427,7 @@ export class InventoryTransactionExecutor {
         },
         data: {
           pendingMovementDelta: { increment: destinationLine.quantity },
+          movementSequence: { increment: 1 },
           version: { increment: 1 },
           lastMovementId: inbound.id,
         },

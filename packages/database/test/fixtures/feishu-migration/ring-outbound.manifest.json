@@ -1,0 +1,84 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "PTPhb4v7waNskrskwCTccQpJnXc",
+  "table_id": "tblpctHbFSnU7Dvp",
+  "rev": 2903,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 547,
+  "page_count": 2,
+  "has_more": false,
+  "record_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\ring-outbound.ndjson",
+  "record_file_size_bytes": 93663,
+  "manifest_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\ring-outbound.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recJoghY3A"
+    },
+    "出库数量": {
+      "field_id": "fldh6bCVIu",
+      "field_type": "number",
+      "physical_type": "number|null",
+      "stats": {
+        "null_count": 0,
+        "min": 1,
+        "max": 15,
+        "avg": 1.583180987202925
+      },
+      "example": 3
+    },
+    "出库日期": {
+      "field_id": "fldUyCtwCE",
+      "field_type": "datetime",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "min": "2026-04-28T00:00:00.000+08:00",
+        "max": "2026-08-31T00:00:00.000+08:00"
+      },
+      "example": "2026-04-28T00:00:00.000+08:00"
+    },
+    "变动类型": {
+      "field_id": "fld8T4tvsb",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 38,
+        "max_length": 1,
+        "avg_length": 0.9305301645338209
+      },
+      "example": ["销售"]
+    },
+    "指环尺码": {
+      "field_id": "fldtu53q1K",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 0,
+        "max_length": 1,
+        "avg_length": 1
+      },
+      "example": ["8#"]
+    },
+    "款式": {
+      "field_id": "fldCyVySwb",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 0,
+        "max_length": 1,
+        "avg_length": 1
+      },
+      "example": ["黄金款"]
+    }
+  }
+}

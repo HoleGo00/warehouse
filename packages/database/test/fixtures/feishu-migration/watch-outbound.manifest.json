@@ -1,0 +1,73 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "MfjUbu1MYa9x5dscz6bcs6Yinth",
+  "table_id": "tbl7OBf9Kb6CapEm",
+  "rev": 142,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 21,
+  "page_count": 1,
+  "has_more": false,
+  "record_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-outbound.ndjson",
+  "record_file_size_bytes": 3335,
+  "manifest_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-outbound.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recE9QaSohnKXN"
+    },
+    "产品名称": {
+      "field_id": "fldHKKNVqW",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 0,
+        "max_length": 1,
+        "avg_length": 1
+      },
+      "example": ["健康腕表"]
+    },
+    "出库数量": {
+      "field_id": "fldTfkr6p8",
+      "field_type": "number",
+      "physical_type": "number|null",
+      "stats": {
+        "null_count": 0,
+        "min": 1,
+        "max": 10,
+        "avg": 2.9047619047619047
+      },
+      "example": 1
+    },
+    "出库日期": {
+      "field_id": "fldBrDIgyM",
+      "field_type": "datetime",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "min": "2026-06-16T00:00:00.000+08:00",
+        "max": "2026-08-21T00:00:00.000+08:00"
+      },
+      "example": "2026-06-16T00:00:00.000+08:00"
+    },
+    "出库类型": {
+      "field_id": "fldcejgYEl",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 0,
+        "max_length": 1,
+        "avg_length": 1
+      },
+      "example": ["展示"]
+    }
+  }
+}

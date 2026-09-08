@@ -16,6 +16,7 @@ import {
   TemporaryOfflineRequestService,
   WarehouseDirectoryService,
   WorkCalendarAdminService,
+  FeishuSyncAdminService,
 } from '@glorychips/database';
 import { AccessController } from './access/access.controller.js';
 import { SystemAdminGuard } from './access/system-admin.guard.js';
@@ -56,6 +57,11 @@ import { AdminRequestsController } from './requests/admin-requests.controller.js
 import { AdminClaimantsController } from './requests/admin-claimants.controller.js';
 import { RequestsController } from './requests/requests.controller.js';
 import { WarehousesController } from './warehouses/warehouses.controller.js';
+import {
+  AdminSyncController,
+  AdminMigrationsController,
+  FEISHU_SYNC_ADMIN_SERVICE,
+} from './sync/admin-sync.controller.js';
 
 @Module({
   controllers: [
@@ -72,9 +78,17 @@ import { WarehousesController } from './warehouses/warehouses.controller.js';
     AdminRequestsController,
     AdminClaimantsController,
     WarehousesController,
+    AdminSyncController,
+    AdminMigrationsController,
   ],
   providers: [
     { provide: API_ENVIRONMENT, useFactory: () => parseApiEnvironment(process.env) },
+    {
+      provide: FEISHU_SYNC_ADMIN_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new FeishuSyncAdminService(database),
+      inject: [DATABASE_CLIENT],
+    },
     {
       provide: DATABASE_CLIENT,
       useFactory: () => createDatabaseClient(process.env),

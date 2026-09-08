@@ -74,14 +74,83 @@ export const apiEnvironmentSchema = databaseEnvironmentSchema
     SESSION_COOKIE_SECURE: value.NODE_ENV === 'production',
   }));
 
-export const workerEnvironmentSchema = databaseEnvironmentSchema.extend({
-  NODE_ENV: nodeEnvironmentSchema,
-  WORKER_POLL_INTERVAL_MS: z.coerce.number().int().min(250).default(5000),
-  WORKER_RUN_ONCE: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((value) => value === 'true'),
-});
+const environmentBoolean = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((value) => value === 'true');
+const baseTokenSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9]+$/)
+  .min(10)
+  .max(128);
+
+export const workerEnvironmentSchema = databaseEnvironmentSchema
+  .extend({
+    NODE_ENV: nodeEnvironmentSchema,
+    WORKER_POLL_INTERVAL_MS: z.coerce.number().int().min(250).max(3_600_000).default(5000),
+    WORKER_RUN_ONCE: environmentBoolean,
+    FEISHU_SYNC_ENABLED: environmentBoolean,
+    FEISHU_SYNC_ENVIRONMENT: z.enum(['TEST', 'FORMAL']).default('FORMAL'),
+    FEISHU_RING_BASE_TOKEN: baseTokenSchema.optional(),
+    FEISHU_WATCH_BASE_TOKEN: baseTokenSchema.optional(),
+    LARK_CLI_EXECUTABLE: z
+      .string()
+      .min(1)
+      .max(1024)
+      .regex(/^[^\r\n\0]+$/)
+      .default('lark-cli'),
+    LARK_CLI_PROFILE: z.literal('glorychips-warehouse').default('glorychips-warehouse'),
+    LARK_CLI_IDENTITY: z.enum(['user', 'bot']).default('user'),
+    LARK_CLI_EXPECTED_VERSION: z.literal('1.0.91').default('1.0.91'),
+    LARK_CLI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120_000).default(30_000),
+    LARK_CLI_MAX_OUTPUT_BYTES: z.coerce.number().int().min(1024).max(33_554_432).default(8_388_608),
+    OUTBOX_LEASE_MS: z.coerce.number().int().min(5000).max(3_600_000).default(180_000),
+    OUTBOX_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(30).default(8),
+    OUTBOX_RETRY_BASE_MS: z.coerce.number().int().min(250).max(60_000).default(1000),
+    OUTBOX_RETRY_MAX_MS: z.coerce.number().int().min(1000).max(3_600_000).default(300_000),
+    WORKER_RECONCILE_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .min(5000)
+      .max(86_400_000)
+      .default(300_000),
+  })
+  .superRefine((value, context) => {
+    if (!value.FEISHU_SYNC_ENABLED) return;
+    for (const field of ['FEISHU_RING_BASE_TOKEN', 'FEISHU_WATCH_BASE_TOKEN'] as const) {
+      if (!value[field]) {
+        context.addIssue({ code: 'custom', message: 'Sync target is required.', path: [field] });
+      }
+    }
+    if (value.FEISHU_RING_BASE_TOKEN === value.FEISHU_WATCH_BASE_TOKEN) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Sync targets must use distinct Bases.',
+        path: ['FEISHU_WATCH_BASE_TOKEN'],
+      });
+    }
+    if (value.OUTBOX_LEASE_MS < value.LARK_CLI_TIMEOUT_MS * 2) {
+      context.addIssue({
+        code: 'custom',
+        message: 'The lease must cover at least two CLI timeout windows.',
+        path: ['OUTBOX_LEASE_MS'],
+      });
+    }
+    if (value.OUTBOX_RETRY_MAX_MS < value.OUTBOX_RETRY_BASE_MS) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Maximum retry delay must cover the base delay.',
+        path: ['OUTBOX_RETRY_MAX_MS'],
+      });
+    }
+    if (value.NODE_ENV === 'production' && value.FEISHU_SYNC_ENVIRONMENT !== 'FORMAL') {
+      context.addIssue({
+        code: 'custom',
+        message: 'Production sync requires formal bindings.',
+        path: ['FEISHU_SYNC_ENVIRONMENT'],
+      });
+    }
+  });
 
 export type ApiEnvironment = z.infer<typeof apiEnvironmentSchema>;
 export type DatabaseEnvironment = z.infer<typeof databaseEnvironmentSchema>;

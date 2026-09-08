@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { createDatabaseClient, ReturnReminderService } from '@glorychips/database';
+import { parseWorkerEnvironment } from '@glorychips/config';
 import { DatabaseLifecycle } from './database-lifecycle.js';
-import { ReturnReminderRunner } from './return-reminder.runner.js';
+import { WorkerScheduler } from './worker-scheduler.js';
+import { createWorkerScheduler } from './create-worker-scheduler.js';
 import { DATABASE_CLIENT, RETURN_REMINDER_SERVICE } from './tokens.js';
 
 @Module({
@@ -13,7 +15,25 @@ import { DATABASE_CLIENT, RETURN_REMINDER_SERVICE } from './tokens.js';
         new ReturnReminderService(database),
       inject: [DATABASE_CLIENT],
     },
-    ReturnReminderRunner,
+    {
+      provide: WorkerScheduler,
+      inject: [DATABASE_CLIENT, RETURN_REMINDER_SERVICE],
+      useFactory: async (
+        database: ReturnType<typeof createDatabaseClient>,
+        reminders: ReturnReminderService,
+      ) => {
+        try {
+          return await createWorkerScheduler(
+            database,
+            reminders,
+            parseWorkerEnvironment(process.env),
+          );
+        } catch (error) {
+          await database.$disconnect();
+          throw error;
+        }
+      },
+    },
     DatabaseLifecycle,
   ],
 })
