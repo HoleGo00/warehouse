@@ -7,13 +7,17 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
+    "start:export": "node --max-old-space-size=256 dist/export-main.js",
+    "dev:export": "tsx --max-old-space-size=256 src/export-main.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@glorychips/contracts": "workspace:*",
     "@glorychips/config": "workspace:*",
     "@glorychips/database": "workspace:*",
     "@nestjs/common": "12.0.1",
     "@nestjs/core": "12.0.1",
+    "exceljs": "4.4.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
   },

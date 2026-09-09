@@ -1,6 +1,11 @@
 packages:
   - apps/*
   - packages/*
+overrides:
+  'exceljs>archiver': 5.3.2
+  'exceljs>fast-csv': 4.3.6
+  'exceljs>uuid': 11.1.1
+  'tar-stream@2>bl': 4.1.0
 allowBuilds:
   '@prisma/engines': true
   esbuild: true

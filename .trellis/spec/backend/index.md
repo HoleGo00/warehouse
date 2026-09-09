@@ -26,6 +26,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Inventory Operations Workflow](./inventory-operations-workflow.md)               | Inbound, transfer, stocktake, returns, tasks, worker and calendar contracts       | Active  |
 | [Feishu Synchronization](./feishu-sync-workflow.md) | CLI intents, ordered settlement, reconciliation, administrator APIs and runtime tests | Active |
 | [Historical Feishu Migration](./feishu-migration-workflow.md) | Frozen snapshots, historical transformation, source deduplication and controlled commands | Active |
+| [Request Reports and XLSX Exports](./request-report-export.md) | Scoped queries, persistent export jobs, private storage and capacity gates | Active |
 
 ---
 

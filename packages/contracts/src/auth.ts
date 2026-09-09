@@ -140,6 +140,7 @@ const knownReturnPathSchema = z.string().refine((value) => {
       url.origin === 'https://warehouse.invalid' &&
       (url.pathname === '/' ||
         url.pathname === '/admin/access' ||
+        url.pathname === '/admin/reports' ||
         url.pathname === '/admin/catalog' ||
         url.pathname === '/admin/requests' ||
         url.pathname === '/admin/inventory/inbound' ||

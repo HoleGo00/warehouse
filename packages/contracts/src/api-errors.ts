@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { authErrorCodes } from './auth.js';
 import { syncErrorCodes } from './feishu-sync.js';
+import { exportErrorCodes } from './request-export.js';
 
 export const catalogErrorCodes = [
   'CATALOG_CONFLICT',
@@ -40,6 +41,7 @@ export const apiErrorCodes = [
   ...catalogErrorCodes,
   ...requestErrorCodes,
   ...syncErrorCodes,
+  ...exportErrorCodes,
 ] as const;
 export const apiErrorCodeSchema = z.enum(apiErrorCodes);
 export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;

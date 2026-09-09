@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Current roles, warehouse scope, sessions and last-administrator protection"}
+{"file": ".trellis/spec/backend/normal-request-workflow.md", "reason": "Request/fulfillment transaction and existing query compatibility"}
+{"file": ".trellis/spec/backend/temporary-offline-request-workflow.md", "reason": "Immediate issuance and later paperwork must keep distinct reporting dates"}
+{"file": ".trellis/spec/backend/inventory-operations-workflow.md", "reason": "Return quantities, linked movements and calendar/task reuse"}
+{"file": ".trellis/spec/backend/feishu-sync-workflow.md", "reason": "Read-only binding boundary and original retry behavior"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "Existing shadcn-vue operational UI and responsive checks"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/prd.md", "reason": "Confirmed business decisions and final approval boundaries"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/design.md", "reason": "Report query, export lifecycle, protected storage and staff UI design"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/research/planning-evidence-2026-09-09.md", "reason": "Actual repository and primary library evidence"}

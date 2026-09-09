@@ -14,6 +14,7 @@ import { createCatalogApi } from '../catalog/catalog-api.js';
 import { createInventoryApi } from '../inventory/inventory-api.js';
 import NormalRequestForm from './NormalRequestForm.vue';
 import PaperworkRequestForm from './PaperworkRequestForm.vue';
+import RequestMovements from '../reports/RequestMovements.vue';
 import { createIdempotencyKeyStore, createRequestApi } from './request-api.js';
 import {
   buildRequestVariantOptions,
@@ -322,6 +323,7 @@ const completePaperwork = async (command: CompleteTemporaryPaperwork): Promise<v
           </div>
         </section>
 
+        <RequestMovements :request-id="detail.id" />
         <section v-if="detail.allowedActions.resubmit" class="action-band">
           <Button
             class="secondary-button"

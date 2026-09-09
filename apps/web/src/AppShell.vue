@@ -15,6 +15,8 @@ import {
   Settings,
   RefreshCw,
   Warehouse,
+  FileSpreadsheet,
+  UserCog,
 } from '@lucide/vue';
 import { authSessionKey } from './features/auth/auth-context.js';
 
@@ -48,6 +50,12 @@ const accountRoleLabel = computed(() => {
       </div>
 
       <nav class="primary-nav" aria-label="主要导航">
+        <RouterLink v-if="isWarehouseAdministrator" class="nav-link" to="/admin/reports">
+          <FileSpreadsheet :size="18" aria-hidden="true" />业务查询与导出
+        </RouterLink>
+        <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/access">
+          <UserCog :size="18" aria-hidden="true" />人员与权限
+        </RouterLink>
         <RouterLink class="nav-link" to="/inventory">
           <PackageSearch :size="18" aria-hidden="true" />
           库存查询

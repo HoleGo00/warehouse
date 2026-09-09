@@ -18,7 +18,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     fileParallelism: false,
-    include: ['packages/database/test/**/*.integration.test.ts'],
+    include: [
+      'packages/database/test/**/*.integration.test.ts',
+      'apps/worker/src/**/*.integration.test.ts',
+    ],
     testTimeout: 30_000,
     hookTimeout: 30_000,
   },
