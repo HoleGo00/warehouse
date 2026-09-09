@@ -205,31 +205,70 @@ enum OutboxStepStatus {
   MANUAL_REVIEW
 }
 
+enum FeishuBindingEnvironment {
+  TEST
+  FORMAL
+}
+
+enum FeishuTableKind {
+  PRODUCT
+  BALANCE
+  MOVEMENT
+}
+
+enum FeishuBindingStatus {
+  PREPARED
+  ACTIVE
+  ROLLED_BACK
+}
+
+enum InventoryMigrationMode {
+  DRY_RUN
+  TEST
+  FORMAL_SHADOW
+  FINAL_DELTA
+}
+
+enum InventoryMigrationStatus {
+  PLANNED
+  RUNNING
+  RECONCILING
+  SUCCEEDED
+  FAILED
+}
+
+enum FeishuSyncWriteStatus {
+  INTENT
+  CONFIRMED
+  UNCERTAIN
+  REJECTED
+}
+
 model User {
-  id                   String                @id @default(uuid()) @db.Uuid
-  tenantKey            String                @map("tenant_key")
-  feishuUserId         String?               @unique @map("feishu_user_id")
-  feishuOpenId         String?               @unique @map("feishu_open_id")
-  feishuUnionId        String?               @map("feishu_union_id")
+  id                   String                 @id @default(uuid()) @db.Uuid
+  tenantKey            String                 @map("tenant_key")
+  feishuUserId         String?                @unique @map("feishu_user_id")
+  feishuOpenId         String?                @unique @map("feishu_open_id")
+  feishuUnionId        String?                @map("feishu_union_id")
   name                 String
-  avatarUrl            String?               @map("avatar_url")
-  departmentSnapshot   Json?                 @map("department_snapshot")
-  status               UserStatus            @default(ACTIVE)
-  lastLoginAt          DateTime?             @map("last_login_at") @db.Timestamptz(3)
-  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  avatarUrl            String?                @map("avatar_url")
+  departmentSnapshot   Json?                  @map("department_snapshot")
+  status               UserStatus             @default(ACTIVE)
+  lastLoginAt          DateTime?              @map("last_login_at") @db.Timestamptz(3)
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
   userRoles            UserRole[]
   warehouseAdminScopes WarehouseAdminScope[]
   authSessions         AuthSession[]
   bootstrapEvents      SystemBootstrapEvent[]
-  requests             Request[]             @relation("RequestClaimant")
-  approvalRecords      ApprovalRecord[]      @relation("ApprovalReviewer")
-  fulfillments         Fulfillment[]         @relation("FulfillmentExecutor")
-  processedReturns     ReturnRecord[]        @relation("ReturnProcessor")
-  assignedAdminTasks   AdminTask[]           @relation("AdminTaskAssignee")
-  auditLogs            AuditLog[]            @relation("AuditActor")
-  inventoryMovements   InventoryMovement[]  @relation("InventoryMovementActor")
-  inventoryOperations  InventoryOperation[] @relation("InventoryOperationActor")
+  requests             Request[]              @relation("RequestClaimant")
+  approvalRecords      ApprovalRecord[]       @relation("ApprovalReviewer")
+  fulfillments         Fulfillment[]          @relation("FulfillmentExecutor")
+  processedReturns     ReturnRecord[]         @relation("ReturnProcessor")
+  assignedAdminTasks   AdminTask[]            @relation("AdminTaskAssignee")
+  auditLogs            AuditLog[]             @relation("AuditActor")
+  inventoryMovements   InventoryMovement[]    @relation("InventoryMovementActor")
+  inventoryOperations  InventoryOperation[]   @relation("InventoryOperationActor")
 
   @@index([tenantKey, status])
   @@map("users")
@@ -259,25 +298,25 @@ model UserRole {
 }
 
 model Warehouse {
-  id              String                    @id @default(uuid()) @db.Uuid
-  code            String                    @unique
-  name            String
-  publicSlug      String                    @unique @map("public_slug")
-  isActive        Boolean                   @default(true) @map("is_active")
-  createdAt       DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  adminScopes     WarehouseAdminScope[]
-  balances        InventoryBalance[]
-  reservations    InventoryReservation[]
-  movements       InventoryMovement[]
-  reconciliations InventoryReconciliation[]
-  requests        Request[]
-  returnRecords   ReturnRecord[]
-  adminTasks      AdminTask[]
-  auditLogs       AuditLog[]
-  inventoryOperations InventoryOperation[] @relation("InventoryOperationWarehouse")
-  sourceInventoryOperations InventoryOperation[] @relation("InventoryOperationSourceWarehouse")
-  destinationInventoryOperations InventoryOperation[] @relation("InventoryOperationDestinationWarehouse")
+  id                             String                    @id @default(uuid()) @db.Uuid
+  code                           String                    @unique
+  name                           String
+  publicSlug                     String                    @unique @map("public_slug")
+  isActive                       Boolean                   @default(true) @map("is_active")
+  createdAt                      DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                      DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  adminScopes                    WarehouseAdminScope[]
+  balances                       InventoryBalance[]
+  reservations                   InventoryReservation[]
+  movements                      InventoryMovement[]
+  reconciliations                InventoryReconciliation[]
+  requests                       Request[]
+  returnRecords                  ReturnRecord[]
+  adminTasks                     AdminTask[]
+  auditLogs                      AuditLog[]
+  inventoryOperations            InventoryOperation[]      @relation("InventoryOperationWarehouse")
+  sourceInventoryOperations      InventoryOperation[]      @relation("InventoryOperationSourceWarehouse")
+  destinationInventoryOperations InventoryOperation[]      @relation("InventoryOperationDestinationWarehouse")
 
   @@map("warehouses")
 }
@@ -380,24 +419,24 @@ model ProductAlias {
 }
 
 model ProductVariant {
-  id                String                    @id @default(uuid()) @db.Uuid
-  productId         String                    @map("product_id") @db.Uuid
-  code              String
-  variantKey        String                    @unique @map("variant_key")
-  displayName       String                    @map("display_name")
-  specificationMode SpecificationMode         @map("specification_mode")
-  size              String?
-  isActive          Boolean                   @default(true) @map("is_active")
-  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  product           Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
-  balances          InventoryBalance[]
-  reservations      InventoryReservation[]
-  movements         InventoryMovement[]
-  reconciliations   InventoryReconciliation[]
-  requestItems      RequestItem[]
-  returnObligations ReturnObligation[]
-  returnRecords     ReturnRecord[]
+  id                      String                    @id @default(uuid()) @db.Uuid
+  productId               String                    @map("product_id") @db.Uuid
+  code                    String
+  variantKey              String                    @unique @map("variant_key")
+  displayName             String                    @map("display_name")
+  specificationMode       SpecificationMode         @map("specification_mode")
+  size                    String?
+  isActive                Boolean                   @default(true) @map("is_active")
+  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt               DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  product                 Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  balances                InventoryBalance[]
+  reservations            InventoryReservation[]
+  movements               InventoryMovement[]
+  reconciliations         InventoryReconciliation[]
+  requestItems            RequestItem[]
+  returnObligations       ReturnObligation[]
+  returnRecords           ReturnRecord[]
   inventoryOperationLines InventoryOperationLine[]
 
   @@unique([productId, code])
@@ -420,17 +459,20 @@ model ProductImageRef {
 }
 
 model InventoryBalance {
-  id                      String         @id @default(uuid()) @db.Uuid
-  warehouseId             String         @map("warehouse_id") @db.Uuid
-  variantId               String         @map("variant_id") @db.Uuid
-  confirmedFeishuQuantity Int            @default(0) @map("confirmed_feishu_quantity")
-  pendingMovementDelta    Int            @default(0) @map("pending_movement_delta")
-  reservedQuantity        Int            @default(0) @map("reserved_quantity")
-  version                 Int            @default(0)
-  lastMovementId          String?        @map("last_movement_id") @db.Uuid
-  updatedAt               DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
-  warehouse               Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  variant                 ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  id                        String         @id @default(uuid()) @db.Uuid
+  warehouseId               String         @map("warehouse_id") @db.Uuid
+  variantId                 String         @map("variant_id") @db.Uuid
+  confirmedFeishuQuantity   Int            @default(0) @map("confirmed_feishu_quantity")
+  pendingMovementDelta      Int            @default(0) @map("pending_movement_delta")
+  reservedQuantity          Int            @default(0) @map("reserved_quantity")
+  version                   Int            @default(0)
+  movementSequence          Int            @default(0) @map("movement_sequence")
+  confirmedMovementSequence Int            @default(0) @map("confirmed_movement_sequence")
+  confirmedLastMovementId   String?        @map("confirmed_last_movement_id") @db.Uuid
+  lastMovementId            String?        @map("last_movement_id") @db.Uuid
+  updatedAt                 DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  warehouse                 Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  variant                   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   @@unique([warehouseId, variantId])
   @@index([variantId])
@@ -459,38 +501,41 @@ model InventoryReservation {
 }
 
 model InventoryMovement {
-  id               String                @id @default(uuid()) @db.Uuid
-  deduplicationKey String                @unique @map("deduplication_key")
-  businessNumber   String                @map("business_number")
-  requestId        String?               @map("request_id") @db.Uuid
-  transferId       String?               @map("transfer_id") @db.Uuid
-  operationId      String?               @map("operation_id") @db.Uuid
-  warehouseId      String                @map("warehouse_id") @db.Uuid
-  variantId        String                @map("variant_id") @db.Uuid
-  type             InventoryMovementType
-  quantityDelta    Int                   @map("quantity_delta")
-  quantityBefore   Int                   @map("quantity_before")
-  quantityAfter    Int                   @map("quantity_after")
-  source           InventoryMovementSource
-  actorUserId      String?               @map("actor_user_id") @db.Uuid
-  actorFeishuUserId String?              @map("actor_feishu_user_id")
-  actorNameSnapshot String?              @map("actor_name_snapshot")
-  sourceTableId    String?               @map("source_table_id")
-  sourceRecordId   String?               @map("source_record_id")
-  sourceNameSnapshot String?             @map("source_name_snapshot")
-  migrationBatchId String?               @map("migration_batch_id")
-  migrationOccurredAt DateTime?         @map("migration_occurred_at") @db.Timestamptz(3)
-  historyOrderRebuilt Boolean            @default(false) @map("history_order_rebuilt")
-  syncStatus       SyncStatus            @default(PENDING) @map("sync_status")
-  occurredAt       DateTime              @default(now()) @map("occurred_at") @db.Timestamptz(3)
-  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
-  warehouse        Warehouse             @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  variant          ProductVariant        @relation(fields: [variantId], references: [id], onDelete: Restrict)
-  request          Request?              @relation(fields: [requestId], references: [id], onDelete: Restrict)
-  actor            User?                 @relation("InventoryMovementActor", fields: [actorUserId], references: [id], onDelete: Restrict)
-  returnRecord     ReturnRecord?
-  operation        InventoryOperation?   @relation(fields: [operationId], references: [id], onDelete: Restrict)
+  id                  String                  @id @default(uuid()) @db.Uuid
+  deduplicationKey    String                  @unique @map("deduplication_key")
+  businessNumber      String                  @map("business_number")
+  requestId           String?                 @map("request_id") @db.Uuid
+  transferId          String?                 @map("transfer_id") @db.Uuid
+  operationId         String?                 @map("operation_id") @db.Uuid
+  warehouseId         String                  @map("warehouse_id") @db.Uuid
+  variantId           String                  @map("variant_id") @db.Uuid
+  type                InventoryMovementType
+  quantityDelta       Int                     @map("quantity_delta")
+  quantityBefore      Int                     @map("quantity_before")
+  quantityAfter       Int                     @map("quantity_after")
+  balanceSequence     Int?                    @map("balance_sequence")
+  source              InventoryMovementSource
+  actorUserId         String?                 @map("actor_user_id") @db.Uuid
+  actorFeishuUserId   String?                 @map("actor_feishu_user_id")
+  actorNameSnapshot   String?                 @map("actor_name_snapshot")
+  productNameSnapshot String?                 @map("product_name_snapshot")
+  sourceTableId       String?                 @map("source_table_id")
+  sourceRecordId      String?                 @map("source_record_id")
+  sourceNameSnapshot  String?                 @map("source_name_snapshot")
+  migrationBatchId    String?                 @map("migration_batch_id")
+  migrationOccurredAt DateTime?               @map("migration_occurred_at") @db.Timestamptz(3)
+  historyOrderRebuilt Boolean                 @default(false) @map("history_order_rebuilt")
+  syncStatus          SyncStatus              @default(PENDING) @map("sync_status")
+  occurredAt          DateTime                @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  warehouse           Warehouse               @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  variant             ProductVariant          @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  request             Request?                @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  actor               User?                   @relation("InventoryMovementActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  returnRecord        ReturnRecord?
+  operation           InventoryOperation?     @relation(fields: [operationId], references: [id], onDelete: Restrict)
 
+  @@unique([warehouseId, variantId, balanceSequence])
   @@index([warehouseId, variantId, occurredAt])
   @@index([businessNumber])
   @@index([requestId])
@@ -501,24 +546,24 @@ model InventoryMovement {
 }
 
 model InventoryOperation {
-  id                       String                  @id @default(uuid()) @db.Uuid
-  operationNumber          String                  @unique @map("operation_number")
-  type                     InventoryOperationType
-  inboundType              InventoryInboundType?   @map("inbound_type")
-  warehouseId              String?                 @map("warehouse_id") @db.Uuid
-  sourceWarehouseId        String?                 @map("source_warehouse_id") @db.Uuid
-  destinationWarehouseId   String?                 @map("destination_warehouse_id") @db.Uuid
-  actorUserId              String                  @map("actor_user_id") @db.Uuid
-  occurredAt               DateTime                @map("occurred_at") @db.Timestamptz(3)
-  reason                   String
-  notes                    String?
-  createdAt                DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
-  actor                    User                    @relation("InventoryOperationActor", fields: [actorUserId], references: [id], onDelete: Restrict)
-  warehouse                Warehouse?              @relation("InventoryOperationWarehouse", fields: [warehouseId], references: [id], onDelete: Restrict)
-  sourceWarehouse          Warehouse?              @relation("InventoryOperationSourceWarehouse", fields: [sourceWarehouseId], references: [id], onDelete: Restrict)
-  destinationWarehouse     Warehouse?              @relation("InventoryOperationDestinationWarehouse", fields: [destinationWarehouseId], references: [id], onDelete: Restrict)
-  lines                    InventoryOperationLine[]
-  movements                InventoryMovement[]
+  id                     String                   @id @default(uuid()) @db.Uuid
+  operationNumber        String                   @unique @map("operation_number")
+  type                   InventoryOperationType
+  inboundType            InventoryInboundType?    @map("inbound_type")
+  warehouseId            String?                  @map("warehouse_id") @db.Uuid
+  sourceWarehouseId      String?                  @map("source_warehouse_id") @db.Uuid
+  destinationWarehouseId String?                  @map("destination_warehouse_id") @db.Uuid
+  actorUserId            String                   @map("actor_user_id") @db.Uuid
+  occurredAt             DateTime                 @map("occurred_at") @db.Timestamptz(3)
+  reason                 String
+  notes                  String?
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  actor                  User                     @relation("InventoryOperationActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  warehouse              Warehouse?               @relation("InventoryOperationWarehouse", fields: [warehouseId], references: [id], onDelete: Restrict)
+  sourceWarehouse        Warehouse?               @relation("InventoryOperationSourceWarehouse", fields: [sourceWarehouseId], references: [id], onDelete: Restrict)
+  destinationWarehouse   Warehouse?               @relation("InventoryOperationDestinationWarehouse", fields: [destinationWarehouseId], references: [id], onDelete: Restrict)
+  lines                  InventoryOperationLine[]
+  movements              InventoryMovement[]
 
   @@index([type, occurredAt])
   @@index([warehouseId, occurredAt])
@@ -527,16 +572,16 @@ model InventoryOperation {
 }
 
 model InventoryOperationLine {
-  id               String             @id @default(uuid()) @db.Uuid
-  operationId      String             @map("operation_id") @db.Uuid
-  variantId        String             @map("variant_id") @db.Uuid
-  quantity         Int?
-  systemQuantity   Int?               @map("system_quantity")
-  countedQuantity  Int?               @map("counted_quantity")
-  difference       Int?
-  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  operation        InventoryOperation @relation(fields: [operationId], references: [id], onDelete: Cascade)
-  variant          ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  id              String             @id @default(uuid()) @db.Uuid
+  operationId     String             @map("operation_id") @db.Uuid
+  variantId       String             @map("variant_id") @db.Uuid
+  quantity        Int?
+  systemQuantity  Int?               @map("system_quantity")
+  countedQuantity Int?               @map("counted_quantity")
+  difference      Int?
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  operation       InventoryOperation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  variant         ProductVariant     @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   @@unique([operationId, variantId])
   @@index([variantId])
@@ -544,17 +589,26 @@ model InventoryOperationLine {
 }
 
 model InventoryReconciliation {
-  id                     String               @id @default(uuid()) @db.Uuid
-  warehouseId            String               @map("warehouse_id") @db.Uuid
-  variantId              String               @map("variant_id") @db.Uuid
-  localEffectiveQuantity Int                  @map("local_effective_quantity")
-  feishuQuantity         Int                  @map("feishu_quantity")
-  difference             Int
-  status                 ReconciliationStatus
-  checkedAt              DateTime             @default(now()) @map("checked_at") @db.Timestamptz(3)
-  resolvedAt             DateTime?            @map("resolved_at") @db.Timestamptz(3)
-  warehouse              Warehouse            @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  variant                ProductVariant       @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  id                      String               @id @default(uuid()) @db.Uuid
+  warehouseId             String               @map("warehouse_id") @db.Uuid
+  variantId               String               @map("variant_id") @db.Uuid
+  localEffectiveQuantity  Int                  @map("local_effective_quantity")
+  feishuQuantity          Int?                 @map("feishu_quantity")
+  difference              Int?
+  target                  OutboxStepTarget?
+  confirmedFeishuQuantity Int                  @default(0) @map("confirmed_feishu_quantity")
+  pendingMovementDelta    Int                  @default(0) @map("pending_movement_delta")
+  remoteRecordId          String?              @map("remote_record_id")
+  bindingId               String?              @map("binding_id") @db.Uuid
+  schemaVersion           Int?                 @map("schema_version")
+  jobId                   String?              @map("job_id") @db.Uuid
+  migrationBatchId        String?              @map("migration_batch_id")
+  evidence                Json?
+  status                  ReconciliationStatus
+  checkedAt               DateTime             @default(now()) @map("checked_at") @db.Timestamptz(3)
+  resolvedAt              DateTime?            @map("resolved_at") @db.Timestamptz(3)
+  warehouse               Warehouse            @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  variant                 ProductVariant       @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   @@index([status, checkedAt])
   @@index([warehouseId, variantId])
@@ -690,23 +744,23 @@ model WorkCalendarDay {
 }
 
 model AdminTask {
-  id          String          @id @default(uuid()) @db.Uuid
-  type        AdminTaskType
-  severity    TaskSeverity
-  status      AdminTaskStatus @default(OPEN)
-  warehouseId String?         @map("warehouse_id") @db.Uuid
-  requestId   String?         @map("request_id") @db.Uuid
-  assigneeId  String?         @map("assignee_id") @db.Uuid
-  deduplicationKey String?     @unique @map("deduplication_key")
-  title       String
-  detail      Json?
-  dueAt       DateTime?       @map("due_at") @db.Timestamptz(3)
-  completedAt DateTime?       @map("completed_at") @db.Timestamptz(3)
-  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
-  warehouse   Warehouse?      @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
-  request     Request?        @relation(fields: [requestId], references: [id], onDelete: Restrict)
-  assignee    User?           @relation("AdminTaskAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
+  id               String          @id @default(uuid()) @db.Uuid
+  type             AdminTaskType
+  severity         TaskSeverity
+  status           AdminTaskStatus @default(OPEN)
+  warehouseId      String?         @map("warehouse_id") @db.Uuid
+  requestId        String?         @map("request_id") @db.Uuid
+  assigneeId       String?         @map("assignee_id") @db.Uuid
+  deduplicationKey String?         @unique @map("deduplication_key")
+  title            String
+  detail           Json?
+  dueAt            DateTime?       @map("due_at") @db.Timestamptz(3)
+  completedAt      DateTime?       @map("completed_at") @db.Timestamptz(3)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  warehouse        Warehouse?      @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  request          Request?        @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  assignee         User?           @relation("AdminTaskAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
 
   @@index([status, severity, dueAt])
   @@index([warehouseId, status])
@@ -759,6 +813,7 @@ model OutboxJob {
   availableAt    DateTime        @default(now()) @map("available_at") @db.Timestamptz(3)
   lockedAt       DateTime?       @map("locked_at") @db.Timestamptz(3)
   lockedBy       String?         @map("locked_by")
+  leaseToken     String?         @map("lease_token") @db.Uuid
   lastErrorCode  String?         @map("last_error_code")
   lastError      String?         @map("last_error")
   createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -777,6 +832,10 @@ model OutboxJobStep {
   attempts       Int              @default(0)
   feishuRecordId String?          @map("feishu_record_id")
   lastError      String?          @map("last_error")
+  lastErrorCode  String?          @map("last_error_code")
+  availableAt    DateTime         @default(now()) @map("available_at") @db.Timestamptz(3)
+  startedAt      DateTime?        @map("started_at") @db.Timestamptz(3)
+  result         Json?
   completedAt    DateTime?        @map("completed_at") @db.Timestamptz(3)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -801,4 +860,86 @@ model FeishuMapping {
   @@unique([baseToken, tableId, recordId])
   @@index([migrationBatchId])
   @@map("feishu_mappings")
+}
+
+model FeishuTableBinding {
+  id                String                   @id @default(uuid()) @db.Uuid
+  target            OutboxStepTarget
+  kind              FeishuTableKind
+  environment       FeishuBindingEnvironment
+  baseToken         String                   @map("base_token")
+  tableId           String                   @map("table_id")
+  schemaVersion     Int                      @map("schema_version")
+  schemaFingerprint String                   @map("schema_fingerprint")
+  fieldIds          Json                     @map("field_ids")
+  status            FeishuBindingStatus      @default(PREPARED)
+  preparedAt        DateTime                 @default(now()) @map("prepared_at") @db.Timestamptz(3)
+  activatedAt       DateTime?                @map("activated_at") @db.Timestamptz(3)
+  rolledBackAt      DateTime?                @map("rolled_back_at") @db.Timestamptz(3)
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  writes            FeishuSyncWrite[]
+
+  @@unique([environment, target, kind, schemaVersion])
+  @@unique([baseToken, tableId])
+  @@map("feishu_table_bindings")
+}
+
+model InventoryMigrationBatch {
+  id                String                     @id @default(uuid()) @db.Uuid
+  batchKey          String                     @unique @map("batch_key")
+  mode              InventoryMigrationMode
+  status            InventoryMigrationStatus   @default(PLANNED)
+  sourceSnapshot    Json                       @map("source_snapshot")
+  expectedSummary   Json?                      @map("expected_summary")
+  actualSummary     Json?                      @map("actual_summary")
+  anomalySummary    Json?                      @map("anomaly_summary")
+  freezeConfirmedAt DateTime?                  @map("freeze_confirmed_at") @db.Timestamptz(3)
+  startedAt         DateTime?                  @map("started_at") @db.Timestamptz(3)
+  completedAt       DateTime?                  @map("completed_at") @db.Timestamptz(3)
+  reportPath        String?                    @map("report_path")
+  lastErrorCode     String?                    @map("last_error_code")
+  lastError         String?                    @map("last_error")
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sources           InventoryMigrationSource[]
+
+  @@map("inventory_migration_batches")
+}
+
+model InventoryMigrationSource {
+  id             String                  @id @default(uuid()) @db.Uuid
+  batchId        String                  @map("batch_id") @db.Uuid
+  sourceTarget   OutboxStepTarget        @map("source_target")
+  sourceTableId  String                  @map("source_table_id")
+  sourceRecordId String                  @map("source_record_id")
+  semanticKind   String                  @map("semantic_kind")
+  sourceHash     String                  @map("source_hash")
+  movementId     String?                 @unique @map("movement_id") @db.Uuid
+  metadata       Json?
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  batch          InventoryMigrationBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@unique([sourceTarget, sourceTableId, sourceRecordId, semanticKind])
+  @@index([batchId])
+  @@map("inventory_migration_sources")
+}
+
+model FeishuSyncWrite {
+  id          String                @id @default(uuid()) @db.Uuid
+  bindingId   String                @map("binding_id") @db.Uuid
+  stableKey   String                @map("stable_key")
+  payloadHash String                @map("payload_hash")
+  fields      Json
+  status      FeishuSyncWriteStatus @default(INTENT)
+  recordId    String?               @map("record_id")
+  ownerToken  String                @map("owner_token") @db.Uuid
+  attempts    Int                   @default(0)
+  lastErrorCode String?              @map("last_error_code")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+  binding     FeishuTableBinding    @relation(fields: [bindingId], references: [id], onDelete: Restrict)
+
+  @@unique([bindingId, stableKey])
+  @@map("feishu_sync_writes")
 }

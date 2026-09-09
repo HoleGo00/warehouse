@@ -1,0 +1,73 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "MfjUbu1MYa9x5dscz6bcs6Yinth",
+  "table_id": "tblmgxPJL2I4xc0D",
+  "rev": 60,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 10,
+  "page_count": 1,
+  "has_more": false,
+  "record_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-inbound.ndjson",
+  "record_file_size_bytes": 1477,
+  "manifest_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-inbound.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recr80omoT7apX"
+    },
+    "产品名称": {
+      "field_id": "fldZri6oIL",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 2,
+        "max_length": 1,
+        "avg_length": 0.8
+      },
+      "example": ["玫瑰"]
+    },
+    "入库数量": {
+      "field_id": "fld2EcBpRc",
+      "field_type": "number",
+      "physical_type": "number|null",
+      "stats": {
+        "null_count": 2,
+        "min": 1,
+        "max": 172,
+        "avg": 40.75
+      },
+      "example": 1
+    },
+    "入库日期": {
+      "field_id": "fldOc4XJSA",
+      "field_type": "datetime",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 2,
+        "min": "2026-06-16T00:00:00.000+08:00",
+        "max": "2026-07-27T00:00:00.000+08:00"
+      },
+      "example": "2026-06-16T00:00:00.000+08:00"
+    },
+    "入库类型": {
+      "field_id": "fldw6j3lOh",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 2,
+        "max_length": 1,
+        "avg_length": 0.8
+      },
+      "example": ["采购入库"]
+    }
+  }
+}

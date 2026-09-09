@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { loadMovementSnapshots } from './movement-snapshots.js';
 import { calculateAvailability, inventoryLineSchema } from '@glorychips/contracts';
 import type { InventoryAvailability } from '@glorychips/contracts';
 import type { Prisma, PrismaClient } from '../generated/prisma/client.js';
@@ -198,6 +199,11 @@ export class InventoryService {
         this.assertSufficient(balances, sourceLines);
 
         const transferId = randomUUID();
+        const snapshots = await loadMovementSnapshots(
+          transaction,
+          sourceLines.map((line) => line.variantId),
+          command.actorUserId,
+        );
         const movementIds: string[] = [];
         for (const [index, sourceLine] of sourceLines.entries()) {
           const destinationLine = destinationLines[index];
@@ -228,8 +234,10 @@ export class InventoryService {
               quantityDelta: -sourceLine.quantity,
               quantityBefore: sourceBefore,
               quantityAfter: sourceBefore - sourceLine.quantity,
+              balanceSequence: sourceBalance.movementSequence + 1,
               source: command.source,
               actorUserId: command.actorUserId,
+              ...snapshots.get(sourceLine.variantId),
             },
           });
           const inbound = await transaction.inventoryMovement.create({
@@ -243,8 +251,10 @@ export class InventoryService {
               quantityDelta: destinationLine.quantity,
               quantityBefore: destinationBefore,
               quantityAfter: destinationBefore + destinationLine.quantity,
+              balanceSequence: destinationBalance.movementSequence + 1,
               source: command.source,
               actorUserId: command.actorUserId,
+              ...snapshots.get(destinationLine.variantId),
             },
           });
           movementIds.push(outbound.id, inbound.id);
@@ -258,6 +268,7 @@ export class InventoryService {
             },
             data: {
               pendingMovementDelta: { decrement: sourceLine.quantity },
+              movementSequence: { increment: 1 },
               version: { increment: 1 },
               lastMovementId: outbound.id,
             },
@@ -271,6 +282,7 @@ export class InventoryService {
             },
             data: {
               pendingMovementDelta: { increment: destinationLine.quantity },
+              movementSequence: { increment: 1 },
               version: { increment: 1 },
               lastMovementId: inbound.id,
             },
@@ -333,7 +345,12 @@ export class InventoryService {
   ): Promise<
     Map<
       string,
-      { confirmedFeishuQuantity: number; pendingMovementDelta: number; reservedQuantity: number }
+      {
+        confirmedFeishuQuantity: number;
+        pendingMovementDelta: number;
+        reservedQuantity: number;
+        movementSequence: number;
+      }
     >
   > {
     const sortedKeys = [...new Map(keys.map((key) => [keyOf(key), key])).values()].sort(

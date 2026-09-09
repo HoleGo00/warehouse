@@ -42,6 +42,10 @@ component systems create inconsistent interaction, tokens, and maintenance owner
 - Treat generated code as project code: review it, pin its dependencies, and adapt its
   tokens and variants to this specification instead of accepting registry defaults
   blindly.
+- Verify generated state selectors against the project's actual CSS setup. Prefer
+  explicit `data-[state=active]` and `data-[orientation=horizontal]` selectors over
+  registry-specific aliases that are not configured here. Typecheck does not prove
+  that a generated layout or state style exists in the compiled CSS.
 - Use shadcn components for standard controls before creating a custom equivalent:
   `Button`, `Input`, `Textarea`, `Select`, `Checkbox`, `RadioGroup`, `Dialog`, `Sheet`,
   `Tabs`, `Table`, `DropdownMenu`, `Tooltip`, `Form`, `Alert`, `Skeleton`, `Badge`,

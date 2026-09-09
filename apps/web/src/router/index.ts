@@ -14,6 +14,7 @@ import ReturnsView from '../features/inventory-operations/ReturnsView.vue';
 import StocktakeView from '../features/inventory-operations/StocktakeView.vue';
 import TransferView from '../features/inventory-operations/TransferView.vue';
 import WorkCalendarView from '../features/inventory-operations/WorkCalendarView.vue';
+import SyncAdminView from '../features/sync/SyncAdminView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -46,6 +47,7 @@ export const router = createRouter({
     { path: '/admin/returns', name: 'admin-returns', component: ReturnsView },
     { path: '/admin/tasks', name: 'admin-tasks', component: AdminTasksView },
     { path: '/admin/work-calendar', name: 'work-calendar', component: WorkCalendarView },
+    { path: '/admin/sync', name: 'sync-admin', component: SyncAdminView },
     { path: '/:pathMatch(.*)*', redirect: '/inventory' },
   ],
 });

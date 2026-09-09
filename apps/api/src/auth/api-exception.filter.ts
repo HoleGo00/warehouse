@@ -8,6 +8,7 @@ import {
   CatalogDomainError,
   InventoryDomainError,
   RequestDomainError,
+  FeishuSyncError,
 } from '@glorychips/database';
 import type { ApiResponse } from './http-types.js';
 
@@ -48,6 +49,17 @@ const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
   STOCKTAKE_RESERVATION_CONFLICT: 409,
   ADMIN_TASK_NOT_FOUND: 404,
   WORK_CALENDAR_CONFLICT: 409,
+  SYNC_JOB_NOT_FOUND: 404,
+  SYNC_STATE_CONFLICT: 409,
+  SYNC_BINDING_INVALID: 409,
+  SYNC_REMOTE_CONFLICT: 409,
+  SYNC_REMOTE_UNCERTAIN: 503,
+  SYNC_ORDER_BLOCKED: 409,
+  SYNC_LEASE_LOST: 409,
+  SYNC_REMOTE_UNAVAILABLE: 503,
+  SYNC_LOCAL_INVARIANT: 409,
+  MIGRATION_REVISION_CHANGED: 409,
+  MIGRATION_FREEZE_REQUIRED: 409,
 };
 
 @Catch()
@@ -59,7 +71,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       exception instanceof AuthDomainError ||
       exception instanceof CatalogDomainError ||
       exception instanceof InventoryDomainError ||
-      exception instanceof RequestDomainError
+      exception instanceof RequestDomainError ||
+      exception instanceof FeishuSyncError
     ) {
       const code = apiErrorCodeSchema.parse(exception.code);
       console.info(JSON.stringify({ event: 'api_rejection', code, traceId }));

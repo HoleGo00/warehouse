@@ -1,0 +1,17 @@
+{"file":".trellis/spec/backend/index.md","reason":"Backend entry point and required quality checks for the cross-layer sync implementation."}
+{"file":".trellis/spec/backend/feishu-migration-workflow.md","reason":"Implemented historical snapshot, transformation, source deduplication, real CLI acceptance and operator freeze boundaries."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Prisma migration, transaction, locking, unique-key, movement, balance, and outbox conventions."}
+{"file":".trellis/spec/backend/inventory-operations-workflow.md","reason":"Authoritative local movement, pending balance, outbox, return, task, and worker invariants consumed by synchronization."}
+{"file":".trellis/spec/backend/normal-request-workflow.md","reason":"Normal fulfillment sync status and request transaction behavior must remain compatible."}
+{"file":".trellis/spec/backend/temporary-offline-request-workflow.md","reason":"Immediate issue and offline movement/outbox behavior must remain compatible."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"CLI process logs and persisted errors must exclude secrets, Base coordinates, and personal snapshots."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Shared contract, transaction, idempotency, rollback, and test requirements."}
+{"file":".trellis/spec/frontend/index.md","reason":"Frontend entry point and required UI checks."}
+{"file":".trellis/spec/frontend/design-guidelines.md","reason":"Required shadcn-vue, functional-copy, palette, geometry, border, and shadow constraints."}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"Vue component, accessibility, primitive, and typing conventions."}
+{"file":".trellis/spec/frontend/inventory-operations-ui.md","reason":"Existing administrator navigation, task center, auth return path, and responsive conventions."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-cli-environment.md","reason":"Verified official lark-cli profile, identity, permissions, command boundaries, and batch limits."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-base-audit.md","reason":"Original six-table schema, data-quality findings, mappings, and reconciliation baseline."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md","reason":"Confirmed asynchronous sync, pending inventory, idempotency, retry, and manual-review product behavior."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-table-migration.md","reason":"Confirmed additive V1 table migration, provenance, historical-product, and rollback rules."}
+{"file":".trellis/tasks/08-31-warehouse-feishu-sync-migration/research/live-baseline-2026-09-04.md","reason":"Fresh source-table revisions and corrected 715-record, 2,118-ring-balance migration baseline."}

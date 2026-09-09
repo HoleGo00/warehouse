@@ -1,0 +1,71 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "MfjUbu1MYa9x5dscz6bcs6Yinth",
+  "table_id": "tblAeMQHyjiZgnky",
+  "rev": 19,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 10,
+  "page_count": 1,
+  "has_more": false,
+  "record_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-balance.ndjson",
+  "record_file_size_bytes": 1112,
+  "manifest_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\watch-balance.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recTl60bMe2z0a"
+    },
+    "产品名称": {
+      "field_id": "fldZ4haqyl",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 6,
+        "max_length": 1,
+        "avg_length": 0.4
+      },
+      "example": [
+        "玫瑰"
+      ]
+    },
+    "入库总量": {
+      "field_id": "fld7Umb2Nt",
+      "field_type": "lookup",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "0"
+    },
+    "出库总量": {
+      "field_id": "fldLMHNahW",
+      "field_type": "lookup",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 2
+      },
+      "example": "0"
+    },
+    "当前库存": {
+      "field_id": "fldkNNNgFf",
+      "field_type": "formula",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "0"
+    }
+  }
+}

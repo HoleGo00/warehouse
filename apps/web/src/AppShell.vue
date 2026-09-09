@@ -13,6 +13,7 @@ import {
   PackagePlus,
   ScanLine,
   Settings,
+  RefreshCw,
   Warehouse,
 } from '@lucide/vue';
 import { authSessionKey } from './features/auth/auth-context.js';
@@ -102,6 +103,10 @@ const accountRoleLabel = computed(() => {
         <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/catalog">
           <Settings :size="18" aria-hidden="true" />
           商品管理
+        </RouterLink>
+        <RouterLink v-if="isSystemAdministrator" class="nav-link" to="/admin/sync">
+          <RefreshCw :size="18" aria-hidden="true" />
+          同步管理
         </RouterLink>
       </nav>
 

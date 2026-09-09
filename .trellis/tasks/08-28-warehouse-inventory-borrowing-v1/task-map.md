@@ -24,6 +24,7 @@
 ## 当前状态
 
 - 已完成：`08-31-warehouse-foundation-domain`、`08-31-warehouse-feishu-auth-rbac`、`08-31-warehouse-catalog-inventory-qr`、`08-31-warehouse-normal-borrowing`、`08-31-warehouse-temporary-offline`、`08-31-warehouse-inventory-operations`。
-- 下一项允许规划：`08-31-warehouse-feishu-sync-migration`；完成最终规划复核并获得用户批准后方可启动实施。
-- 第 7 至 9 个业务子任务：仅完成范围登记，保持 `planning`；第 7 项是下一规划目标。
-- 真实飞书数据：保持只读，直到第 7 个子任务通过其迁移 dry-run 和测试验收。
+- 第 7 项 `08-31-warehouse-feishu-sync-migration`：2026-09-08 本地实现与验收已完成，包括正式影子历史迁移、零差异对账、同批复跑和质量检查。用户已批准两批本地提交、任务归档与日志；功能提交为 `4c99e99`。本地归档不代表远端交付，推送和合并仍待独立授权，不计入已合并交付项。
+- 第 8、9 项仍保持 `planning`；第 7 项交付闭环完成前，不提前进入第 8 项实施。
+- 真实飞书数据：756 条历史流水及 168 个余额已写入新表并验收。六个 binding 保持 `PREPARED`，旧表未被修改，2026-09-08 18:23:44+08:00 已结束停写，可继续正常使用旧表。
+- 正式上线切换仍归第 9 项：重新确认停写、抓取最终增量并对账后，才允许激活新表。

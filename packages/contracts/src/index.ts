@@ -2,6 +2,8 @@ export * from './api-errors.js';
 export * from './auth.js';
 export * from './catalog.js';
 export * from './enums.js';
+export * from './feishu-sync.js';
+export * from './feishu-migration.js';
 export * from './health.js';
 export * from './inventory.js';
 export * from './inventory-operations.js';

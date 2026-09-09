@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 6
-- **Last Active**: 2026-09-04
+- **Total Sessions**: 7
+- **Last Active**: 2026-09-08
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~145 | Active |
+| `journal-1.md` | ~181 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 7 | 2026-09-08 | 完成飞书库存同步与历史迁移验收 | `4c99e99`, `254c9d3` | `codex/warehouse-feishu-sync-migration` |
 | 6 | 2026-09-04 | 完成归还、调拨、盘点与提醒 | `e51401a`, `3f4f392` | `codex/warehouse-inventory-operations` |
 | 5 | 2026-09-04 | 完成临时领用与线下登记 | `e3712eb`, `b6a56fe` | `codex/warehouse-temporary-offline` |
 | 4 | 2026-09-04 | 完成正常领用审核与发放 | `4e15e6e`, `57ad0d8` | `codex/warehouse-normal-borrowing` |

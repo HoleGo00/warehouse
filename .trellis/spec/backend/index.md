@@ -24,6 +24,8 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Normal Request Workflow](./normal-request-workflow.md)                           | Online normal borrowing state machine, atomic inventory actions and idempotency  | Active  |
 | [Temporary and Offline Request Workflow](./temporary-offline-request-workflow.md) | Immediate issue, paperwork, work-calendar deadlines and offline registration     | Active  |
 | [Inventory Operations Workflow](./inventory-operations-workflow.md)               | Inbound, transfer, stocktake, returns, tasks, worker and calendar contracts       | Active  |
+| [Feishu Synchronization](./feishu-sync-workflow.md) | CLI intents, ordered settlement, reconciliation, administrator APIs and runtime tests | Active |
+| [Historical Feishu Migration](./feishu-migration-workflow.md) | Frozen snapshots, historical transformation, source deduplication and controlled commands | Active |
 
 ---
 

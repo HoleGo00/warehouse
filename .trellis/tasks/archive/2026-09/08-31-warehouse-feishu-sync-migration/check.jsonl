@@ -1,0 +1,13 @@
+{"file":".trellis/spec/backend/index.md","reason":"Review backend quality checklist and all linked active domain contracts."}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"Check migrations, SKIP LOCKED leases, settlement atomicity, unique constraints, and immutable history."}
+{"file":".trellis/spec/backend/inventory-operations-workflow.md","reason":"Verify synchronization never bypasses movement/outbox and preserves effective inventory invariants."}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"Audit CLI/error logging for tokens, Base coordinates, personal snapshots, and payload leakage."}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Check stable contracts, errors, success/rollback paths, idempotency, and full root gates."}
+{"file":".trellis/spec/frontend/index.md","reason":"Review frontend quality checklist and active design contracts."}
+{"file":".trellis/spec/frontend/design-guidelines.md","reason":"Audit shadcn-vue, functional copy, forbidden themes, radius, cards, borders, shadows, and visual QA."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Check async states, shared contracts, browser coverage, accessibility, and responsive overflow."}
+{"file":".trellis/spec/frontend/inventory-operations-ui.md","reason":"Check administrator navigation, authorization-derived visibility, task behavior, and dual viewport acceptance."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-sync-reliability.md","reason":"Review retry and uncertain-result behavior against the confirmed business contract."}
+{"file":".trellis/tasks/08-28-warehouse-inventory-borrowing-v1/research/feishu-table-migration.md","reason":"Review additive migration, provenance, idempotent reruns, and rollback boundaries."}
+{"file":".trellis/tasks/08-31-warehouse-feishu-sync-migration/research/live-baseline-2026-09-04.md","reason":"Verify tests and reports use the fresh source revisions and quantities rather than stale constants."}
+{"file":".trellis/spec/backend/feishu-migration-workflow.md","reason":"Verify migration snapshots, exact source and remote reconciliation, replay idempotency and formal freeze gates."}

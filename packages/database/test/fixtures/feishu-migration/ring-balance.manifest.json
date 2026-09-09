@@ -1,0 +1,80 @@
+{
+  "manifest_version": "v1",
+  "format": "ndjson",
+  "base_token": "PTPhb4v7waNskrskwCTccQpJnXc",
+  "table_id": "tblu4MDtsKhQy36V",
+  "rev": 194,
+  "timezone": "Asia/Shanghai",
+  "query_context": {
+    "field_scope": "selected_fields",
+    "record_scope": "all_records"
+  },
+  "requested_limit": 2000,
+  "records_count": 30,
+  "page_count": 1,
+  "has_more": false,
+  "record_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\ring-balance.ndjson",
+  "record_file_size_bytes": 4804,
+  "manifest_file": "D:\\GloryChips\\glorychips-warehouse-feishu-sync-migration\\.trellis\\tasks\\08-31-warehouse-feishu-sync-migration\\research\\live-baseline\\ring-balance.manifest.json",
+  "columns": {
+    "record_id": {
+      "physical_type": "string",
+      "stats": {
+        "max_length": 14
+      },
+      "example": "recvjA6VkxFTQ3"
+    },
+    "剩余库存": {
+      "field_id": "fldl7mD3iL",
+      "field_type": "formula",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "3"
+    },
+    "当前累计入库数量": {
+      "field_id": "fldbjevqA3",
+      "field_type": "formula",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "3"
+    },
+    "当前累计出库数量": {
+      "field_id": "fld4sHJtxN",
+      "field_type": "formula",
+      "physical_type": "string|null",
+      "stats": {
+        "null_count": 0,
+        "max_length": 3
+      },
+      "example": "0"
+    },
+    "指环尺码": {
+      "field_id": "fldDEOgOrm",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 2,
+        "max_length": 1,
+        "avg_length": 0.9333333333333333
+      },
+      "example": ["8#"]
+    },
+    "款式": {
+      "field_id": "fldbf2KRho",
+      "field_type": "select",
+      "physical_type": "array<string>",
+      "stats": {
+        "empty_count": 2,
+        "max_length": 1,
+        "avg_length": 0.9333333333333333
+      },
+      "example": ["黄金款"]
+    }
+  }
+}
