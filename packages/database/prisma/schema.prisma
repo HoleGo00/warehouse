@@ -269,9 +269,47 @@ model User {
   auditLogs            AuditLog[]             @relation("AuditActor")
   inventoryMovements   InventoryMovement[]    @relation("InventoryMovementActor")
   inventoryOperations  InventoryOperation[]   @relation("InventoryOperationActor")
+  requestExports       RequestExport[]
 
   @@index([tenantKey, status])
   @@map("users")
+}
+
+enum RequestExportStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+}
+
+model RequestExport {
+  id                  String              @id @default(uuid()) @db.Uuid
+  actorUserId         String              @map("actor_user_id") @db.Uuid
+  filters             Json
+  filterHash          String              @map("filter_hash")
+  warehouses          String[]
+  status              RequestExportStatus @default(QUEUED)
+  attemptCount        Int                 @default(0) @map("attempt_count")
+  leaseToken          String?             @map("lease_token") @db.Uuid
+  leaseUntil          DateTime?           @map("lease_until") @db.Timestamptz(3)
+  snapshotAt          DateTime?           @map("snapshot_at") @db.Timestamptz(3)
+  completedAt         DateTime?           @map("completed_at") @db.Timestamptz(3)
+  expiresAt           DateTime?           @map("expires_at") @db.Timestamptz(3)
+  fileKey             String?             @map("file_key")
+  fileSize            Int?                @map("file_size")
+  fileHash            String?             @map("file_hash")
+  summaryCount        Int                 @default(0) @map("summary_count")
+  detailCount         Int                 @default(0) @map("detail_count")
+  errorCode           String?             @map("error_code")
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  actor               User                @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([status, leaseUntil, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([expiresAt])
+  @@map("request_exports")
 }
 
 model Role {

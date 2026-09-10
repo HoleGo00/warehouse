@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { parseApiEnvironment } from '@glorychips/config';
+import { parseApiEnvironment, parseExportEnvironment } from '@glorychips/config';
 import {
   AuthService,
   AdminTaskService,
@@ -17,8 +17,21 @@ import {
   WarehouseDirectoryService,
   WorkCalendarAdminService,
   FeishuSyncAdminService,
+  ReportService,
+  ExportService,
+  ExportStorage,
 } from '@glorychips/database';
 import { AccessController } from './access/access.controller.js';
+import { ReportWriteGuard } from './reports/report-write.guard.js';
+import {
+  ReportsController,
+  ReportMovementsController,
+  StaffController,
+  ExportsController,
+  REPORT_SERVICE,
+  EXPORT_SERVICE,
+  EXPORT_STORAGE,
+} from './reports/reports.controller.js';
 import { SystemAdminGuard } from './access/system-admin.guard.js';
 import { ApiExceptionFilter } from './auth/api-exception.filter.js';
 import { AuthApplicationService } from './auth/auth-application.service.js';
@@ -65,6 +78,10 @@ import {
 
 @Module({
   controllers: [
+    ReportsController,
+    ReportMovementsController,
+    StaffController,
+    ExportsController,
     HealthController,
     AuthController,
     AccessController,
@@ -82,6 +99,23 @@ import {
     AdminMigrationsController,
   ],
   providers: [
+    ReportWriteGuard,
+    {
+      provide: REPORT_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new ReportService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: EXPORT_SERVICE,
+      useFactory: (database: ReturnType<typeof createDatabaseClient>) =>
+        new ExportService(database),
+      inject: [DATABASE_CLIENT],
+    },
+    {
+      provide: EXPORT_STORAGE,
+      useFactory: () => new ExportStorage(parseExportEnvironment(process.env).EXPORT_STORAGE_DIR),
+    },
     { provide: API_ENVIRONMENT, useFactory: () => parseApiEnvironment(process.env) },
     {
       provide: FEISHU_SYNC_ADMIN_SERVICE,

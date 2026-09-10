@@ -26,6 +26,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [Temporary and Offline Request UI](./temporary-offline-request-ui.md) | Immediate temporary issue, paperwork queues and offline registration         | Active  |
 | [Inventory Operations UI](./inventory-operations-ui.md)               | Inbound, transfer, stocktake, return, task and work-calendar behavior         | Active  |
 | [Synchronization Administration](./sync-admin-ui.md) | Safe sync state, retries, cancellation and generated primitive visual checks | Active |
+| [Reports and Access Administration](./request-report-admin-ui.md) | Combined filters, owned exports, role dialogs and stale-state protection | Active |
 
 ---
 

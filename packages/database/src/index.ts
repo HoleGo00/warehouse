@@ -32,3 +32,8 @@ export * from './sync/admin-service.js';
 export * from './sync/migration-snapshot.js';
 export * from './sync/migration-plan.js';
 export * from './sync/migration-service.js';
+export * from './reports/errors.js';
+export * from './reports/report-query.js';
+export * from './reports/report-service.js';
+export * from './reports/export-service.js';
+export * from './reports/export-storage.js';

@@ -17,6 +17,7 @@
     "dev:api": "pnpm --filter @glorychips/api dev",
     "dev:web": "pnpm --filter @glorychips/web dev",
     "dev:worker": "pnpm --filter @glorychips/worker dev",
+    "dev:export": "pnpm --filter @glorychips/worker dev:export",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "feishu:migration": "pnpm --filter @glorychips/worker exec tsx src/feishu/migration-command.ts",

@@ -9,10 +9,21 @@ import {
   InventoryDomainError,
   RequestDomainError,
   FeishuSyncError,
+  ReportError,
 } from '@glorychips/database';
 import type { ApiResponse } from './http-types.js';
 
 const statusByCode: Readonly<Partial<Record<ApiErrorCode, number>>> = {
+  EXPORT_NOT_FOUND: 404,
+  EXPORT_NOT_READY: 409,
+  EXPORT_EXPIRED: 410,
+  EXPORT_LIMIT: 429,
+  EXPORT_TOO_LARGE: 422,
+  EXPORT_TIMEOUT: 503,
+  EXPORT_STORAGE: 503,
+  EXPORT_FAILED: 503,
+  EXPORT_LEASE_LOST: 409,
+  EXPORT_INVALID_TEXT: 422,
   AUTH_REQUIRED: 401,
   AUTH_STATE_INVALID: 400,
   AUTH_IDENTITY_CONFLICT: 409,
@@ -72,7 +83,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       exception instanceof CatalogDomainError ||
       exception instanceof InventoryDomainError ||
       exception instanceof RequestDomainError ||
-      exception instanceof FeishuSyncError
+      exception instanceof FeishuSyncError ||
+      exception instanceof ReportError
     ) {
       const code = apiErrorCodeSchema.parse(exception.code);
       console.info(JSON.stringify({ event: 'api_rejection', code, traceId }));

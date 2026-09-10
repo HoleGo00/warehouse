@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
-- **Last Active**: 2026-09-08
+- **Total Sessions**: 9
+- **Last Active**: 2026-09-10
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~181 | Active |
+| `journal-1.md` | ~254 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,8 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-09-10 | Multer security remediation and local delivery | `74b2eff` | `codex/warehouse-query-export-admin` |
+| 8 | 2026-09-09 | 第8项本地交付：查询、Excel导出与权限管理 | `8899bd4` | `codex/warehouse-query-export-admin` |
 | 7 | 2026-09-08 | 完成飞书库存同步与历史迁移验收 | `4c99e99`, `254c9d3` | `codex/warehouse-feishu-sync-migration` |
 | 6 | 2026-09-04 | 完成归还、调拨、盘点与提醒 | `e51401a`, `3f4f392` | `codex/warehouse-inventory-operations` |
 | 5 | 2026-09-04 | 完成临时领用与线下登记 | `e3712eb`, `b6a56fe` | `codex/warehouse-temporary-offline` |

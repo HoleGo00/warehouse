@@ -14,13 +14,14 @@ import { SessionGuard } from '../auth/session.guard.js';
 import { AUTH_SERVICE } from '../auth/tokens.js';
 import { assertWarehouseAccess } from './authorization.js';
 import { SystemAdminGuard } from './system-admin.guard.js';
+import { ReportWriteGuard } from '../reports/report-write.guard.js';
 
 @Controller('access')
 export class AccessController {
   public constructor(@Inject(AUTH_SERVICE) private readonly auth: AuthServicePort) {}
 
   @Put('users/:userId')
-  @UseGuards(SessionGuard, SystemAdminGuard)
+  @UseGuards(SessionGuard, SystemAdminGuard, ReportWriteGuard)
   public async updateUserAccess(
     @Param('userId') userId: string,
     @Body() rawBody: unknown,

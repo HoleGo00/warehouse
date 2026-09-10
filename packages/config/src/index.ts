@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { feishuAppIdSchema } from '@glorychips/contracts';
+export * from './export-config.js';
 
 const nodeEnvironmentSchema = z.enum(['development', 'test', 'production']).default('development');
 

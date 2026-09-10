@@ -15,11 +15,15 @@ import StocktakeView from '../features/inventory-operations/StocktakeView.vue';
 import TransferView from '../features/inventory-operations/TransferView.vue';
 import WorkCalendarView from '../features/inventory-operations/WorkCalendarView.vue';
 import SyncAdminView from '../features/sync/SyncAdminView.vue';
+import ReportsView from '../features/reports/ReportsView.vue';
+import AccessView from '../features/access/AccessView.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/inventory' },
+    { path: '/admin/reports', name: 'reports', component: ReportsView },
+    { path: '/admin/access', name: 'access', component: AccessView },
     { path: '/inventory', name: 'inventory', component: InventoryView },
     { path: '/w/:warehouseCode/apply', name: 'warehouse-entry', component: WarehouseEntryView },
     {

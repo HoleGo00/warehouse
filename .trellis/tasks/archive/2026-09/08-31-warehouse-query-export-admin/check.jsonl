@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/backend/authentication-guidelines.md", "reason": "Check current permission enforcement and concurrent last-admin safety"}
+{"file": ".trellis/spec/backend/normal-request-workflow.md", "reason": "Check no regression in request state, issue and idempotency"}
+{"file": ".trellis/spec/backend/temporary-offline-request-workflow.md", "reason": "Check temporary/offline date and paperwork semantics"}
+{"file": ".trellis/spec/backend/inventory-operations-workflow.md", "reason": "Check return projections and linked inventory evidence"}
+{"file": ".trellis/spec/backend/feishu-sync-workflow.md", "reason": "Check original sync boundaries without real provider mutations"}
+{"file": ".trellis/spec/frontend/design-guidelines.md", "reason": "Desktop/mobile quality, controls and permission state cleanup"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/prd.md", "reason": "Full-scope acceptance including matched-item totals and expiration"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/design.md", "reason": "Snapshot, lease, publication, file access and recovery risks"}
+{"file": ".trellis/tasks/08-31-warehouse-query-export-admin/implement.md", "reason": "Required real download, capacity tests and delivery gates"}

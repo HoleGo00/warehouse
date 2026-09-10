@@ -179,3 +179,76 @@
 ### Next Steps
 
 - 等待独立授权后再推送和合并；本次不推进第8项。生产切换归第9项，必须重新确认停写并处理最终增量。
+
+
+## Session 8: 第8项本地交付：查询、Excel导出与权限管理
+<!-- trellis-session: v=2 fp=e3081beab3b5d77d -->
+
+**Date**: 2026-09-09
+**Task**: 第8项本地交付：查询、Excel导出与权限管理
+**Branch**: `codex/warehouse-query-export-admin`
+
+### Summary
+
+用户在完整验收报告及67文件提交计划后回复继续，确认本地交付。已完成工作提交与本任务归档；本轮仅更新验收和收尾记录，未改变已验证的业务代码。未推送、未合并、未部署。
+
+### Main Changes
+
+- 组合查询默认提交日期，可切换实际发放日期；混领只导出同明细条件命中的商品，两张工作表同一快照。
+- 独立exporter、私有文件目录、24小时下载及当前权限复核；人员权限页面复用最后管理员保护。
+- 保留主目录登录延期文件和原规划副本、第7项工作树AGENTS.md；QA会话、Excel和截图不提交。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8899bd4` | feat(reports): add scoped queries, private Excel exports and access administration |
+
+### Testing
+
+- [OK] 最终代码门禁：181项单元/HTTP、71项常规PostgreSQL集成通过；Prisma验证、lint、typecheck、build、format及diff检查通过。本轮暂存与归档范围复核通过。
+- [OK] 十万条独立进程压测通过：26.3秒，18.1MiB，RSS约306MiB，2080次并发查询p95约183ms；两表经真实HTTP下载回读及数值逐行核对。
+- [OK] 1440x900与390x844浏览器操作、真实Excel下载、权限编辑和撤权清空通过；导出进程停用及存储不可用恢复通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 仅在用户另行授权后推送、创建PR和合并；不把本次本地交付当作生产上线授权。
+- 第9项尚未启动；正式飞书登录、生产共享卷和切换验收仍待处理。9条基线依赖告警（6高、2中、1低）未解决，本次新增0条。
+
+
+## Session 9: Multer security remediation and local delivery
+<!-- trellis-session: v=2 fp=dd88a52f44be8250 -->
+
+**Date**: 2026-09-10
+**Task**: Multer security remediation and local delivery
+**Branch**: `codex/warehouse-query-export-admin`
+
+### Summary
+
+User accepted the scoped Multer 2.3.0 repair on 2026-09-10; four advisories removed, five deferred. Work committed and task archived locally; no push, merge, or deployment.
+
+### Main Changes
+
+- Pinned only the Nest 12.0.1 Multer edge to 2.3.0 and added ten bounded regression tests; documented Nest error mapping limitations.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `74b2eff` | fix(deps): patch Multer security advisories |
+
+### Testing
+
+- [OK] 191 unit/HTTP tests and 71 isolated PostgreSQL integration tests passed; one existing capacity test skipped. Frozen install, lint, typecheck, build, formatting and staged diff checks passed.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Address the five remaining advisories under a separately approved scope. Push, merge and production activation remain unauthorized.

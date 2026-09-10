@@ -9,4 +9,6 @@ export * from './inventory.js';
 export * from './inventory-operations.js';
 export * from './inventory-query.js';
 export * from './requests.js';
+export * from './request-report.js';
+export * from './request-export.js';
 export * from './warehouses.js';
