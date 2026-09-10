@@ -218,3 +218,37 @@
 
 - 仅在用户另行授权后推送、创建PR和合并；不把本次本地交付当作生产上线授权。
 - 第9项尚未启动；正式飞书登录、生产共享卷和切换验收仍待处理。9条基线依赖告警（6高、2中、1低）未解决，本次新增0条。
+
+
+## Session 9: Multer security remediation and local delivery
+<!-- trellis-session: v=2 fp=dd88a52f44be8250 -->
+
+**Date**: 2026-09-10
+**Task**: Multer security remediation and local delivery
+**Branch**: `codex/warehouse-query-export-admin`
+
+### Summary
+
+User accepted the scoped Multer 2.3.0 repair on 2026-09-10; four advisories removed, five deferred. Work committed and task archived locally; no push, merge, or deployment.
+
+### Main Changes
+
+- Pinned only the Nest 12.0.1 Multer edge to 2.3.0 and added ten bounded regression tests; documented Nest error mapping limitations.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `74b2eff` | fix(deps): patch Multer security advisories |
+
+### Testing
+
+- [OK] 191 unit/HTTP tests and 71 isolated PostgreSQL integration tests passed; one existing capacity test skipped. Frozen install, lint, typecheck, build, formatting and staged diff checks passed.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Address the five remaining advisories under a separately approved scope. Push, merge and production activation remain unauthorized.
