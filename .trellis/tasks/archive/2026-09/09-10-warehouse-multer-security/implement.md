@@ -55,8 +55,9 @@ Expect removal of four targeted IDs, not a zero-advisory repository.
 - [x] Review applicable specs; no business contract or existing override convention
   changed. Keep the dependency-specific compatibility finding in this task.
 - [x] Obtain user acceptance and approval of the scoped local commit on 2026-09-10.
-- [ ] Keep task unarchived until acceptance and work commit requirements are met.
-- [ ] Push, merge, and production actions remain separately unauthorized.
+- [x] Archive after user acceptance and work commit `74b2eff`, on 2026-09-10.
+- [x] Preserve the authorization boundary: no push, merge, or production actions.
 
 All automated gates passed. See `implementation-evidence-2026-09-10.md`.
-Human acceptance is recorded. Work commit, archive, and journal are next.
+Human acceptance, work commit, and archive are recorded.
+The journal is recorded separately after the archive commit.

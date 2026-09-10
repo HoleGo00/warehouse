@@ -67,5 +67,5 @@ without changing application behavior or expanding production access.
 No unresolved product decisions. PRD convergence review is complete.
 Implementation approved on 2026-09-10; automated criteria above have passed.
 User accepted the repair and authorized the scoped local commit on 2026-09-10.
-Task remains `in_progress` until the work commit and archive are recorded.
+Local work commit `74b2eff` is recorded; the task was archived on 2026-09-10.
 See `implementation-evidence-2026-09-10.md` for verification and residual risks.

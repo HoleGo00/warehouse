@@ -7,8 +7,9 @@
 - Branch: `codex/warehouse-query-export-admin`, based on `4106317`.
 - Implementation and automated validation complete; user accepted the repair
   and authorized the scoped local commit on 2026-09-10.
-- Local work commit, archive, and journal are authorized next. Push, PR, merge,
-  and deployment remain outside this authorization.
+- Local work commit: `74b2eff30a7e699244feeb890492303a63ba962e`.
+- Task archived on 2026-09-10; the journal follows as a separate bookkeeping step.
+- No push, PR, merge, or deployment is authorized or performed.
 
 ## Change Summary
 
@@ -151,5 +152,8 @@ Full build output is retained by FastCtx job `j-ha7j0m`.
 
 Approved work commit scope is the two dependency files, two new test files, and
 this task directory. The user confirmed acceptance and local submission on
-2026-09-10. Archive and journal follow the work commit; push, merge, and production
-activation remain separate authorization gates.
+2026-09-10. Work commit `74b2eff` and task archival are recorded; the journal is
+written afterward. Push, merge, and production activation remain separate gates.
+
+Pre-commit staging exposed CRLF whitespace warnings in the generated task JSON.
+Only that record's line endings were normalized, and the staged diff check passed.
